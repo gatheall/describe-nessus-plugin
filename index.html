@@ -23,7 +23,7 @@
 
 <H3>Introduction</H3>
 
-<P>This simple script prints out assorted descriptive information about
+<P>This script prints out assorted descriptive information about
 each <A HREF="http://www.nessus.org/">Nessus</A> plugin named on the
 commandline: id, name, family, category, etc.  It works by reading the
 plugin directly and parsing out the information of interest.  As such,
@@ -31,15 +31,43 @@ it only works with plugins written in NASL (<CODE>*.nasl</CODE>), not
 those in C (<CODE>*.nes</CODE>).  It does not require access to a Nessus
 server but does require read access to the plugin.</P>
 
+<P>Descriptive information is taken from the various
+<CODE>script_*</CODE> functions in the description part of a plugin. 
+The decision about what information to report can be controlled either
+by setting <CODE>@funcs</CODE> in this script or by using the option
+<CODE>-f|--functions</CODE> on the commandline.  In either case,
+function names should be specified without the leading
+<CODE>script_</CODE> string; for example, <CODE>cve_id</CODE> represents
+the information supplied as an argument to <CODE>script_cve_id</CODE>. 
+The order in which information is reported is controlled by setting
+<CODE>@func_order</CODE> in this script; there is no way to change it
+via the commandline.</P>
+
 <P>Some of the descriptive information fields in plugins are available
 in languages other than English -- typically French, but occasionally
 German and Portuguese.  You can control the language used by adjusting
-the variable <CODE>$lang_pref</CODE> in the source; if information in
-the desired language is not available, this script falls back to using
-English.</P>
+the variable <CODE>$lang</CODE> in the source or with the option
+<CODE>--language</CODE>; if information in the desired language is not
+available, this script defaults to English, like the NASL
+interpreter.</P>
 
 <P><B>describe-nessus-plugin</B> is written in Perl.  It should work on
-any system with Perl 5 or better.</P>
+any system with Perl 5.005 or better.  It also requires the following
+Perl modules:</P>
+
+<UL>
+   <LI><CODE>Carp</CODE></LI>
+   <LI><CODE>Getopt::Long</CODE></LI>
+   <LI><CODE>Text::Balanced</CODE></LI>
+   <LI><CODE>Text::Wrap</CODE></LI>
+</UL>
+
+<P>If your system does not have these modules installed already, visit
+<A HREF="http://search.cpan.org/">CPAN</A> for help.  Note that
+<CODE>Text::Balanced</CODE> does not work with versions of Perl older
+than 5.005; further, it is not included with Perl distributions prior to
+5.8.0 so you will probably need to install it if you're running an older
+version of Perl.</P>
 
 
 <H3>Installation</H3>
@@ -53,31 +81,96 @@ any system with Perl 5 or better.</P>
       <A HREF="/~theall/gpg.html">my current GPG key</A>.</LI>
    <LI>You may wish to edit the script to adjust the location of
       the perl interpreter in the first line and to set 
-      <CODE>$lang_pref</CODE> to suit your tastes.</LI>
+      <CODE>@funcs</CODE>, <CODE>%func_labels</CODE>, 
+      <CODE>@func_order</CODE>, and <CODE>$lang</CODE> to suit 
+      your tastes.</LI>
 </OL>
 
 
 <H3>Use</H3>
 
+<P>There are several commandline arguments you can use to override 
+variables defined in the script itself:</P>
+
+<BLOCKQUOTE>
+<DL>
+   <DT>-d, --debug</DT>
+   <DD>Display debugging messages while running.</DD>
+
+   <DT>-f, --functions &lt;funcs&gt;</DT>
+   <DD>Display information for the specified functions, overriding
+      <CODE>@funcs</CODE>. Function names are equal to the NASL 
+      descriptive information functions, with the leading string 
+      <CODE>script_</CODE> removed. <CODE>risk</CODE> can also be
+      specified as a function name; it refers to the risk factor,
+      which by convention is specified as part of 
+      <CODE>script_description</CODE>. In addition, <CODE>_all_</CODE>
+      can be used to represent all possible functions and the prefix 
+      <CODE>!</CODE> to skip specific ones.</DD>
+
+   <DT>-l, --language &lt;lang&gt;</DT>
+   <DD>Select language preference for descriptive information, overriding
+      <CODE>$lang</CODE>. Possible languages are: <CODE>deutsch</CODE>, 
+      <CODE>english</CODE>, <CODE>francais</CODE>, or 
+      <CODE>portugues</CODE>.</DD>
+</DL>
+</BLOCKQUOTE>
+
+<P>Notes:</P>
+<UL>
+   <LI>Commandline arguments take precedence over variables defined in the
+      script. For example, you can describe all functions by using the
+      commandline argument <CODE>-f _all_</CODE> regardless of how
+      <CODE>@funcs</CODE> is defined in the script.</LI>
+
+   <LI>Multiple functions can be specified either by a comma-delimited 
+      string or by multiple argument pairs.  For example, <CODE>-f 
+      "cve_id,bugtraq"</CODE> is equivalent to <CODE>-f cve_id -f 
+      bugtraq</CODE>.</LI>
+</UL>
+
 <P>Examples:</P>
 <BLOCKQUOTE>
 <DL>
-   <DT><CODE>describe-nessus-plugin /usr/local/lib/nessus/plugins/mssql*</CODE></DT>
-   <DD>Describe assorted plugins related to MS SQL.</DD>
+   <DT><CODE>describe-nessus-plugin /usr/local/lib/nessus/plugins/mssql*.nasl</CODE></DT>
+   <DD>Describes assorted NASL plugins related to MS SQL.</DD>
+
+   <DT><CODE>describe-nessus-plugin -l francais /usr/local/lib/nessus/plugins/zope*.nasl</CODE></DT>
+   <DD>Describes assorted NASL plugins related to Zope using French 
+      strings whenever possible.</DD>
+
+   <DT><CODE>describe-nessus-plugin -d wip.nasl</CODE></DT>
+   <DD>Shows how the script parses the specified NASL plugin.</DD>
+
+   <DT><CODE>describe-nessus-plugin -f cve_id /usr/local/lib/nessus/plugins/*.nasl</CODE></DT>
+   <DD>Reports CVE ID(s) for all NASL plugins.</DD>
+
+   <DT><CODE>describe-nessus-plugin -f _all_ -f '!description'
+      /usr/local/lib/nessus/plugins/*.nasl</CODE></DT>
+   <DD>Reports all information except the description for all NASL plugins.</DD>
 </DL>
 </BLOCKQUOTE>
 
 
 <H3>Known Bugs and Caveats</H3>
 
-<P>There is a bug in the script that ignores all but the first X-Reference
-in a plugin. I hope to fix this shortly.</P>
+<P>Currently, I am not aware of any bugs in this script.</P>
+
+<P>Understand that this script is not a NASL parser - on one hand, it
+may not handle some constructs the language allows; on the other, it may
+accept some the language prohibits.  Still, it seems to properly process
+all the scripts currently available via
+<CODE>nessus-update-plugins</CODE>.</P>
+
+<P>Long lines in the output are wrapped and indented to agree with the
+report format, which sometimes messes up formatting that plugin authors
+have done.</P>
 
 <P>There is a limit to the size of the arguments passed to
 <CODE>script_cve_id()</CODE>, which sets the CVE IDs of the flaws tested
 by the plugin.  Additional CVE IDs, which by convention are listed in
-comments, are not reported by <B>describe-nessus-plugin</B> since they
-can not be reliably identified.</P>
+comments, are not reported by this script since they can not be reliably
+identified.</P>
 
 
 <H3>Copyright and License</H3>
@@ -98,6 +191,23 @@ it under the same terms as Perl itself.</P>
       <TH ALIGN="left">Version </TH>
       <TH ALIGN="left">Verification </TH>
       <TH ALIGN="left">Notes<BR></TH>
+   </TR>
+   <TR>
+      <TH ALIGN="left" VALIGN="top">03-Dec-2003 </TH>
+      <TD ALIGN="left" VALIGN="top"><A HREF="describe-nessus-plugin-2.00">2.00</A> </TD>
+      <TD ALIGN="left" VALIGN="top"><A HREF="describe-nessus-plugin-2.00.md5">MD5</A> / 
+         <A HREF="describe-nessus-plugin-2.00.asc">GPG</A> </TD>
+      <TD ALIGN="left" VALIGN="top">
+      <UL>
+         <LI>Rewrote major portions of the code.</LI>
+         <LI>Fixed a bug that would cause all but first X-Reference function
+            in a plugin to be ignored.</LI>
+         <LI>Added support for category ACT_FLOOD and for all descriptive
+            functions in NASL currently.</LI>
+         <LI>Added options for selecting prefered language as well as the
+            functions to output.</LI>
+         <LI>Added support for wrapping long lines in output.</LI>
+      </UL></TD>
    </TR>
    <TR>
       <TH ALIGN="left" VALIGN="top">12-Oct-2003 </TH>
