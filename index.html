@@ -136,24 +136,30 @@ variables defined in the script itself:</P>
 <P>Examples:</P>
 <BLOCKQUOTE>
 <DL>
-   <DT><CODE>describe-nessus-plugin /usr/local/lib/nessus/plugins/mssql*.nasl</CODE></DT>
-   <DD>Describes assorted NASL plugins related to MS SQL.</DD>
+   <DT>Describe assorted NASL plugins related to MS SQL.</DT>
+   <DD><CODE>describe-nessus-plugin /usr/local/lib/nessus/plugins/mssql*.nasl</CODE></DD>
 
-   <DT><CODE>describe-nessus-plugin -l francais /usr/local/lib/nessus/plugins/zope*.nasl</CODE></DT>
-   <DD>Describes assorted NASL plugins related to Zope using French 
-      strings whenever possible.</DD>
+   <DT>Describe assorted NASL plugins related to Zope using French 
+      strings whenever possible.</DT>
+   <DD><CODE>describe-nessus-plugin -l francais /usr/local/lib/nessus/plugins/zope*.nasl</CODE></DD>
 
-   <DT><CODE>describe-nessus-plugin -d wip.nasl</CODE></DT>
-   <DD>Shows how the script parses the specified NASL plugin.</DD>
+   <DT>Show how the script parses the specified NASL plugin.</DT>
+   <DD><CODE>describe-nessus-plugin -d wip.nasl</CODE></DD>
 
-   <DT><CODE>describe-nessus-plugin -f cve_id /usr/local/lib/nessus/plugins/*.nasl</CODE></DT>
-   <DD>Reports CVE ID(s) for all NASL plugins.</DD>
+   <DT>Report CVE ID(s) for all NASL plugins.</DT>
+   <DD><CODE>describe-nessus-plugin -f cve_id /usr/local/lib/nessus/plugins/*.nasl</CODE></DD>
 
-   <DT><CODE>describe-nessus-plugin -f _all_ -f '!description'
-      /usr/local/lib/nessus/plugins/*.nasl</CODE></DT>
-   <DD>Reports all information except the description for all NASL plugins.</DD>
+   <DT>Report all information except the description for all NASL plugins.</DT>
+   <DD><CODE>describe-nessus-plugin -f _all_ -f '!description'
+      /usr/local/lib/nessus/plugins/*.nasl</CODE></DD>
 </DL>
 </BLOCKQUOTE>
+
+<P>The output produced by <B>describe-nessus-plugin</B> is fairly simple
+to manipulate, if you care to work with it elsewhere.  For example, <A
+HREF="/code/describe-nessus-plugin/desc2csv">desc2csv</A> is a Perl
+script to filter the output into CSV format, for import into a 
+spreadsheet or possibly a database.</P>
 
 
 <H3>Known Bugs and Caveats</H3>
@@ -184,7 +190,7 @@ enable you to resolve the problem by yourself.</P>
 
 <H3>Copyright and License</H3>
 
-<P>Copyright (c) 2003, George A. Theall.<BR>
+<P>Copyright (c) 2003 - 2004, George A. Theall.<BR>
 All rights reserved.</P>
 
 <P>This script is free software; you can redistribute it and/or modify
@@ -200,6 +206,23 @@ it under the same terms as Perl itself.</P>
       <TH ALIGN="left">Version </TH>
       <TH ALIGN="left">Verification </TH>
       <TH ALIGN="left">Notes<BR></TH>
+   </TR>
+   <TR>
+      <TH ALIGN="left" VALIGN="top">17-Mar-2004 </TH>
+      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.10">2.10</A> </TD>
+      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.10.md5">MD5</A> / 
+         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.10.asc">GPG</A> </TD>
+      <TD ALIGN="left" VALIGN="top">
+      <UL>
+         <LI>Added subroutine prototypes.</LI>
+         <LI>Added limited support for the NASL function 
+            <CODE>raw_string()</CODE>.</LI>
+         <LI>Modified usage message and removed separate error message if no
+            plugins were specified.</LI>
+         <LI>Modified handling of quoted values and references in 
+            <CODE>eval_expr()</CODE>.</LI>
+         <LI>Removed any trailing spaces from Risk Factor.</LI>
+      </UL></TD>
    </TR>
    <TR>
       <TH ALIGN="left" VALIGN="top">09-Dec-2003 </TH>

@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -wT
+#!/usr/bin/perl -wT
 
 
 =head1 NAME
@@ -8,20 +8,20 @@ describe-nessus-plugin - describes one or more Nessus plugins.
 
 =head1 SYNOPSIS
 
-  # Describes assorted NASL plugins related to MS SQL.
+  # Describe assorted NASL plugins related to MS SQL.
   describe-nessus-plugin /usr/local/lib/nessus/plugins/mssql*.nasl
 
-  # Describes assorted NASL plugins related to Zope using 
+  # Describe assorted NASL plugins related to Zope using 
   #   French strings whenever possible.
   describe-nessus-plugin -l francais /usr/local/lib/nessus/plugins/zope*.nasl
 
-  # Shows how the script parses the specified NASL plugin.
+  # Show how the script parses the specified NASL plugin.
   describe-nessus-plugin -d wip.nasl
 
-  # Reports CVE ID(s) for all NASL plugins.
+  # Report CVE ID(s) for all NASL plugins.
   describe-nessus-plugin -f cve_id /usr/local/lib/nessus/plugins/*.nasl
 
-  # Reports all descriptive information for all NASL plugins.
+  # Report all descriptive information for all NASL plugins.
   describe-nessus-plugin -f _all_ /usr/local/lib/nessus/plugins/*.nasl
 
 
@@ -117,7 +117,7 @@ George A. Theall, E<lt>theall@tifaware.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2003, George A. Theall.
+Copyright (c) 2003 - 2004, George A. Theall.
 All rights reserved.
 
 This script is free software; you can redistribute it and/or modify
@@ -125,6 +125,14 @@ it under the same terms as Perl itself.
 
 
 =head1 HISTORY
+
+17-Mar-2004, v2.10, George A. Theall
+    o Added subroutine prototypes.
+    o Added limited support for the NASL function C<raw_string()>.
+    o Modified usage message and removed separate error message if no
+      plugins were specified.
+    o Modified handling of quoted values and references in C<eval_expr()>.
+    o Removed any trailing spaces from Risk Factor.
 
 09-Dec-2003, v2.01, George A. Theall
     o Added code to print an error message if no plugins are specified
@@ -151,7 +159,6 @@ it under the same terms as Perl itself.
 ############################################################################
 # Make sure we have access to the required modules.
 use 5.005;
-
 use strict;
 use Carp;
 use Getopt::Long;
@@ -242,6 +249,10 @@ my @func_order = (                      # order of functions in output.
 );
 my $lang = 'english';       # 'deutsch', 'english', 'francais', or 'portugues'
 
+# Subroutine prototypes.
+sub find_args($;$);
+sub eval_expr($);
+
 
 ############################################################################
 # Process commandline arguments.
@@ -257,14 +268,27 @@ GetOptions(
     'help|h|?!',
     'language|l=s',
 );
-if ($options{help}) {
-    print "Usage: $0 [-d|--debug] [-f|--functions \"funcs\"] [-l|--language \"lang\"] plugin1 plugin2 ...\n",
-          "  or\n",
-          "       $0 -h|-?|--help\n";
+$0 =~ s/^.+\///;
+if ($options{help} or @ARGV == 0) {
+    print "\n",
+          "Usage: $0 [options] file(s)\n",
+          "\n",
+          "Options:\n",
+          "  -?, -h, --help             Display this help and exit.\n",
+          "  -d, --debug                Display copious debugging messages.\n",
+          "  -f, --functions <funcs>    Display information about the functions <funcs>.\n",
+          "                             Possible values are:\n",
+          "                               'add_preference', 'bugtraq_id', 'category',\n",
+          "                               'copyright', 'cve_id', 'dependencies',\n",
+          "                               'description', 'exclude_keys', 'family', 'id',\n",
+          "                               'name', 'require_keys', 'require_ports',\n",
+          "                               'require_udp_ports', 'risk', 'summary',\n",
+          "                               'timeout', 'version', 'xref', and '_all_'.\n",
+          "                             Functions prefixed with '!' are ignored.\n",
+          "  -l, --language <lang>      Use <lang> as language preference; must be one of\n",
+          "                               'deutsch', 'english', 'francais', and\n",
+          "                               'portugues'.\n";
     exit(9);
-}
-unless (@ARGV) {
-    croak "*** No plugins specified on commandline! ***\n";
 }
 
 @funcs = split(/,\s*/, join(',', @{$options{functions}})) 
@@ -379,7 +403,7 @@ foreach my $plugin (@ARGV) {
         # nb: unescape any backslashes.
         $argstr =~ s/\\\\/\\/g;
         warn "debug:       arg string at start is '$argstr'.\n" if $DEBUG;
-        my @args = &find_args($argstr);
+        my @args = find_args($argstr);
         if ($DEBUG) {
             warn "debug:       args:\n";
             foreach (@args) {
@@ -413,7 +437,7 @@ foreach my $plugin (@ARGV) {
 
         # Evaluate / expand arguments.
         foreach (@args) {
-            $_ = &eval_expr($_);
+            $_ = eval_expr($_);
         }
         my %named_args = map { /^(?s)(\w+)\s*:\s*(.*)$/ && $1 => $2 } @args;
 
@@ -461,10 +485,13 @@ foreach my $plugin (@ARGV) {
 
         # Identify risk if desired.
         #
-        # nb: this must occur *before* removing excessive newlines.
+        # nb: this must occur *before* removing newlines.
         if ($func eq 'description' and grep($_ eq 'risk', @funcs)) {
             $info{risk} = $2 
-                if ($argstr =~ /(Risk|Risk factor)\s*:\s*([^\\\n]+)/is);
+                # nb: pattern catches last instance of risk factor and uses
+                #     rest of the line, until the last non-whitespace 
+                #     character (to avoid trailing whitespace).
+                if ($argstr =~ /.+(Risk|Risk\s+factor)\s*:\s*([^\n]*\S)/is);
         }
 
         # Removing newlines except those separating paragraphs.
@@ -516,7 +543,7 @@ foreach my $plugin (@ARGV) {
 #
 # Returns an array of arguments or undef on failure.
 #
-sub find_args {
+sub find_args($;$) {
     confess "syntax error" unless (@_ == 1 or @_ == 2);
     my $str = shift;
     my $delim = shift || ',';
@@ -555,7 +582,7 @@ sub find_args {
             },
             # - function.
             sub {
-                if ($_[0] =~ s/^(?s)(\s*\Q$delim\E\s*)?(\w+\s*:\s*)?(ereg_replace|string)\s*\(\s*/(/) {
+                if ($_[0] =~ s/^(?s)(\s*\Q$delim\E\s*)?(\w+\s*:\s*)?(ereg_replace|raw_string|string)\s*\(\s*/(/) {
                     # nb: $1 is leading garbage,
                     #     $2 is named argument, if any
                     #     $3 is function name
@@ -631,7 +658,7 @@ sub find_args {
 #
 # Returns an array of arguments or undef on failure.
 #
-sub eval_expr {
+sub eval_expr($) {
     confess "syntax error" unless (@_ == 1);
     my $expr = shift;
     warn "debug eval_expr: evaluating '$expr'.\n" if $DEBUG;
@@ -641,31 +668,33 @@ sub eval_expr {
     $name = $1 if ($expr =~ s/^(?s)(\w+)\s*:\s*//);
 
     # Evaluate quoted values.
-    if ($expr =~ /^(?s)(['"])(.*)\1$/) {
+    if ($expr =~ /^(?s)("[^"]*"|'[^']*')$/) {
         warn "debug eval_expr:   it's a quoted value.\n" if $DEBUG;
-        $expr = $2;
+        $expr = $1;
+        # nb: pattern above captures enclosing quotes.
+        $expr =~ s/^(?s)(['"])(.*)\1$/$2/;
     }
     # Evaluate string functions.
     elsif ($expr =~ /^(?s)string\s*\(\s*(.+)\s*\)/) {
         warn "debug eval_expr:   it's a string function.\n" if $DEBUG;
         my @args;
-        foreach (&find_args($1)) {
+        foreach (find_args($1)) {
             # nb: expand selected escape sequences.
             s/\\n/\n/gs;
             s/\\t/\t/gs;
-            push(@args, &eval_expr($_));
+            push(@args, eval_expr($_));
         }
         $expr = join('', @args);
     }
     # Evaluate ereg_replace functions.
     elsif ($expr =~ /^(?s)ereg_replace\s*\(\s*(.+)\s*\)/) {
         warn "debug eval_expr:   it's an ereg_replace function.\n" if $DEBUG;
-        my @args = &find_args($1);
+        my @args = find_args($1);
         my %named_args = map { /^(?s)(\w+)\s*:\s*(.*)$/ && $1 => $2 } @args;
         if (exists($named_args{pattern}) and exists($named_args{replace}) and exists($named_args{string})) {
-            my $pattern = &eval_expr($named_args{pattern});
-            my $replace = &eval_expr($named_args{replace});
-            my $str = &eval_expr($named_args{string});
+            my $pattern = eval_expr($named_args{pattern});
+            my $replace = eval_expr($named_args{replace});
+            my $str = eval_expr($named_args{string});
             if (exists($named_args{icase}) and $named_args{icase}) {
                 $str =~ s/\Q$pattern\E/$replace/gsi;
             }
@@ -675,12 +704,30 @@ sub eval_expr {
             $expr = $str;
         }
     }
+    # Evaluate raw_string functions.
+    #
+    # nb: this mirrors its NASL version incompletely - it only converts 
+    #     integers to ASCII; other args are treated as strings but 
+    #     otherwise left alone.
+    elsif ($expr =~ /^(?s)raw_string\s*\(\s*(.+)\s*\)/) {
+        warn "debug eval_expr:   it's a raw_string function.\n" if $DEBUG;
+        $expr = '';
+        foreach my $arg (find_args($1)) {
+            $arg = eval_expr($arg);
+            if ($arg =~ /^(\d+|0x[0-9a-f]{2})$/i) {
+                $expr .= pack('C', oct($1));
+            }
+            else {
+                $expr .= $arg;
+            }
+        }
+    }
     # Evaluate sums.
-    elsif ($expr =~ /^(?s)\s*\S+\s*\+\s*\S+/) {
+    elsif ($expr =~ /^(?s)\s*("[^"]+"|'[^']+'|\S+)\s*\+\s*\S/) {
         warn "debug eval_expr:   it's a sum.\n" if $DEBUG;
         my @args;
-        foreach (&find_args($expr, '+')) {
-            push(@args, &eval_expr($_));
+        foreach (find_args($expr, '+')) {
+            push(@args, eval_expr($_));
         }
         # nb: evaluate sum depending on whether there are any non-numeric args.
         if (grep(!/^[\d\.]$/, @args)) {
@@ -695,15 +742,11 @@ sub eval_expr {
     }
     # Evaluate references.
     #
-    # nb: the convoluted regex pattern ensures we use definitions
-    #     that aren't commented out.
-    elsif ($expr =~ /\w/ and $contents =~ /(?s)(^|\n)[^#\n]*\b\Q$expr\E\s*=\s*(.+)/) {
+    # nb: the convoluted regex pattern ensures we use definitions that
+    #     aren't commented out and we focus only on the reference.
+    elsif ($expr =~ /\w/ and $contents =~ /(?s)(^|\n)[^#\n]*\b\Q$expr\E\s*=\s*(("[^"]*"|'[^']*'|[^"';]*)+);/) {
         warn "debug eval_expr:   it's a reference.\n" if $DEBUG;
-        my @args;
-        foreach (&find_args($2)) {
-            push(@args, &eval_expr($_));
-        }
-        $expr = join('', @args);
+        $expr = eval_expr($2);
     }
 
     $expr = $name . ':' . $expr if ($name);
