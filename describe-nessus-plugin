@@ -1,0 +1,160 @@
+#!/usr/local/bin/perl -wT
+
+
+=head1 NAME
+
+describe-nessus-plugin - describe one or more Nessus plugins.
+
+
+=head1 SYNOPSIS
+
+  # Describe assorted plugins related to MS SQL.
+  describe-nessus-plugin /usr/local/lib/nessus/plugins/mssql*
+
+
+=head1 DESCRIPTION
+
+This simple script prints out assorted descriptive information about
+each Nessus plugin named on the commandline: id, name, family, category,
+etc.  It works by reading the plugin directly and parsing out the
+information of interest.  As such, it only works with plugins written in
+NASL (C<*.nasl>), not those in C (C<*.nes>).  It does not require
+access to a Nessus server but does require read access to the plugin. 
+
+Some of the descriptive information fields in plugins are available in
+languages other than English -- typically French, but occasionally
+German and Portuguese.  You can control the language used by adjusting
+the variable C<$lang_pref> in the source; if information in the desired
+language is not available, this script falls back to using English. 
+
+B<describe-nessus-plugin> is written in Perl.  It should work on any
+system with Perl 5 or better.
+
+
+=head1 KNOWN BUGS AND CAVEATS
+
+Currently, I am not aware of any bugs in this script. 
+
+There is a limit to the size of the arguments passed to
+C<script_cve_id()>, which sets the CVE IDs of the flaws tested by the
+plugin.  Additional CVE IDs, which by convention are listed in comments,
+are not reported by B<describe-nessus-plugin> since they can not be
+reliably identified. 
+
+
+=head1 DIAGNOSTICS
+
+Failure to read a plugin will result in a warning and cause that plugin
+to be skipped. 
+
+
+=head1 SEE ALSO
+
+L<http://cgi.nessus.org/plugins/>,
+L<http://www.nessus.org/doc/nasl2_reference.pdf>,
+L<http://www.tifaware.com/perl/describe-nessus-plugin/>. 
+
+
+=head1 AUTHOR
+
+George A. Theall, E<lt>theall@tifaware.comE<gt>
+
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2003, George A. Theall.
+All rights reserved.
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself. 
+
+
+=head1 HISTORY
+
+12-Oct-2003, v1.00, George A. Theall
+    o Initial version.
+
+=cut
+
+
+############################################################################
+# Make sure we have access to the required modules.
+require 5;
+
+use strict;
+
+
+############################################################################
+# Initialize variables.
+my %categories = (                      # see nessus-core/doc/WARNING.En
+    'ACT_ATTACK'                => 'attack',
+    'ACT_DENIAL'                => 'denial',
+    'ACT_DESTRUCTIVE_ATTACK'    => 'destructive_attack',
+    'ACT_END'                   => 'unknown',
+    'ACT_GATHER_INFO'           => 'infos',
+    'ACT_KILL_HOST'             => 'kill_host',
+    'ACT_MIXED_ATTACK'          => 'mixed',
+    'ACT_SCANNER'               => 'scanner',
+    'ACT_SETTINGS'              => 'settings',
+);
+my $lang_pref = 'english';              # nb: 'deutsch', 'english', 'francais', or 'portugues'
+
+
+############################################################################
+# Iterate over each plugin named on the commandline.
+foreach my $plugin (@ARGV) {
+
+    # Suck contents of plugin into a scalar.
+    open(FILE, $plugin) or warn "Can't read $plugin - $!\n" and next;
+    my $contents;
+    { local $/; $contents = <FILE>; }
+    close(FILE);
+
+    # Strip out comments.
+    $contents =~ s/#.*\n//mg;
+
+    # Parse out items of interest.
+    my %info;
+    for my $var ('id', 'name', 'family', 'category', 'summary', 'version', 'cve_id', 'bugtraq_id', 'xref') {
+        next unless ($contents =~ /script_${var}\s*\((.+?)\);/s);
+        my $val = $1;
+
+        $val = $1 if ($val =~ /$lang_pref:\s*\"(.+?)\"/ or $val =~ /english:\s*\"(.+?)\"/);
+        if ($val =~ /(${lang_pref}):\s*(\w+)\[\"${lang_pref}\"\]/i or $val =~ /(english):\s*(\w+)\[\"english\"\]/i) {
+            my $lang_pref = $1;
+            my $var = $2;
+            if ($contents =~ /$var\[\"$lang_pref\"\]\s*=\s*(.+?);/) {
+                $val = $1;
+            }
+            else {
+                $val = 'n/a';
+            }
+        }
+        $val =~ s/^\s*"\s*(.+)\s*"\s*$/$1/;
+        $val = $categories{$val}
+            if ($var eq 'category' and exists $categories{$val});
+        $val =~ s/^\$Revision: (\S+) \$$/$1/i if ($var eq 'version');
+        $val =~ s/\"//g if ($var eq 'cve_id');
+        if ($var eq 'xref' and $val =~ /(name|value)/) {
+            my($name, $value);
+            $name = $1  if ($val =~ /name:\"([^"]+)\"/);
+            $value = $1 if ($val =~ /value:\"([^"]+)\"/);
+            $val = "$name:$value" if ($name and $value);
+        }
+
+        $info{$var} = $val;
+    }
+
+    # Print report.
+    print "$plugin\n",
+          "  Id:             ", ($info{id}           || 'n/a'), "\n",
+          "  Name:           ", ($info{name}         || 'n/a'), "\n",
+          "  Family:         ", ($info{family}       || 'n/a'), "\n",
+          "  Category:       ", ($info{category}     || 'n/a'), "\n",
+          "  Summary:        ", ($info{summary}      || 'n/a'), "\n",
+          "  Version:        ", ($info{version}      || 'n/a'), "\n",
+          "  CVE-ID(s):      ", ($info{cve_id}       || 'n/a'), "\n",
+          "  BugTraq ID(s):  ", ($info{bugtraq_id}   || 'n/a'), "\n",
+          "  X-Reference:    ", ($info{xref}         || 'n/a'), "\n";
+    print "\n";
+}

@@ -1,0 +1,128 @@
+<HTML>
+<HEAD>
+<TITLE>describe-nessus-plugin</TITLE>
+<LINK REV="made" HREF="mailto:theall@tifaware.com">
+<LINK REL="shortcut icon" HREF="http://www.tifaware.com/favicon.ico">
+</HEAD>
+
+<!--#include virtual="/header.html"-->
+<!--#if expr="$weblint" -->
+<BODY BGCOLOR="#FFFFFF">
+<!--#endif -->
+
+
+<H4 ALIGN="center">
+   <A HREF="/">TifaWARE</A> |
+   <A HREF="../">Perl Programs</A> |
+   describe-nessus-plugin
+</H4>
+                                                                                
+                                                                                
+<HR>
+<H2>describe-nessus-plugin</H2>
+
+<H3>Introduction</H3>
+
+<P>This simple script prints out assorted descriptive information about
+each <A HREF="http://www.nessus.org/">Nessus</A> plugin named on the
+commandline: id, name, family, category, etc.  It works by reading the
+plugin directly and parsing out the information of interest.  As such,
+it only works with plugins written in NASL (<CODE>*.nasl</CODE>), not
+those in C (<CODE>*.nes</CODE>).  It does not require access to a Nessus
+server but does require read access to the plugin.</P>
+
+<P>Some of the descriptive information fields in plugins are available
+in languages other than English -- typically French, but occasionally
+German and Portuguese.  You can control the language used by adjusting
+the variable <CODE>$lang_pref</CODE> in the source; if information in
+the desired language is not available, this script falls back to using
+English.</P>
+
+<P><B>describe-nessus-plugin</B> is written in Perl.  It should work on
+any system with Perl 5 or better.</P>
+
+
+<H3>Installation</H3>
+
+<OL>
+   <LI>Retrieve the script 
+      <A HREF="describe-nessus-plugin">describe-nessus-plugin</A> and save it
+      locally.  You may also wish to verify its 
+      <A HREF="describe-nessus-plugin.md5">MD5 checksum</A> or, better, its
+      <A HREF="describe-nessus-plugin.asc">GPG signature</A> against
+      <A HREF="/~theall/gpg.html">my current GPG key</A>.</LI>
+   <LI>You may wish to edit the script to adjust the location of
+      the perl interpreter in the first line and to set 
+      <CODE>$lang_pref</CODE> to suit your tastes.</LI>
+</OL>
+
+
+<H3>Use</H3>
+
+<P>Examples:</P>
+<BLOCKQUOTE>
+<DL>
+   <DT><CODE>describe-nessus-plugin /usr/local/lib/nessus/plugins/mssql*</CODE></DT>
+   <DD>Describe assorted plugins related to MS SQL.</DD>
+</DL>
+</BLOCKQUOTE>
+
+
+<H3>Known Bugs and Caveats</H3>
+
+<P>There is a bug in the script that ignores all but the first X-Reference
+in a plugin. I hope to fix this shortly.</P>
+
+<P>There is a limit to the size of the arguments passed to
+<CODE>script_cve_id()</CODE>, which sets the CVE IDs of the flaws tested
+by the plugin.  Additional CVE IDs, which by convention are listed in
+comments, are not reported by <B>describe-nessus-plugin</B> since they
+can not be reliably identified.</P>
+
+
+<H3>Copyright and License</H3>
+
+<P>Copyright (c) 2003, George A. Theall.<BR>
+All rights reserved.</P>
+
+<P>This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.</P>
+
+
+<H3>History</H3>
+
+<CENTER>
+<TABLE CELLPADDING="5" CELLSPACING="0" WIDTH="95%" BORDER="1">
+   <TR>
+      <TH ALIGN="left">Date </TH>
+      <TH ALIGN="left">Version </TH>
+      <TH ALIGN="left">Verification </TH>
+      <TH ALIGN="left">Notes<BR></TH>
+   </TR>
+   <TR>
+      <TH ALIGN="left" VALIGN="top">12-Oct-2003 </TH>
+      <TD ALIGN="left" VALIGN="top"><A HREF="describe-nessus-plugin-1.00">1.00</A> </TD>
+      <TD ALIGN="left" VALIGN="top"><A HREF="describe-nessus-plugin-1.00.md5">MD5</A> / 
+         <A HREF="describe-nessus-plugin-1.00.asc">GPG</A> </TD>
+      <TD ALIGN="left" VALIGN="top">
+      <UL>
+         <LI>Initial version.</LI>
+      </UL></TD>
+   </TR>
+</TABLE>
+</CENTER>
+
+
+<HR>
+<H4 ALIGN="center">
+   <A HREF="/">TifaWARE</A> |
+   <A HREF="../">Perl Programs</A> |
+   describe-nessus-plugin
+</H4>
+                                                                                
+                                                                                
+<!--#include virtual="/footer.html" -->
+<!--#if expr="$weblint" -->
+</BODY>
+<!--#endif -->
+</HTML>
