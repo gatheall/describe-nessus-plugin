@@ -30,26 +30,27 @@ describe-nessus-plugin - describes one or more Nessus plugins.
 This script prints out assorted descriptive information about each
 Nessus plugin named on the commandline: id, name, family, category, etc. 
 It works by reading the plugin directly and parsing out the information
-of interest.  As such, it only works with plugins written in NASL
-(C<*.nasl>), not those in C (C<*.nes>).  It does not require access to a
-Nessus server but does require read access to the plugin. 
+of interest from the various C<script_*> functions in the its
+description block.  As such, it only works with plugins written in NASL
+(C<*.nasl>), not NASL include files (C<*.inc>) or plugins written in C
+(C<*.nes>).  It does not require access to a Nessus server but does
+require read access to the plugin. 
 
-Descriptive information is taken from the various C<script_*> functions
-in the description part of a plugin.  The decision about what
-information to report can be controlled either by setting C<@funcs> in
-this script or by using the option C<-f|--functions> on the commandline. 
-In either case, function names should be specified without the leading
-C<script_> string; for example, C<cve_id> represents the information
-supplied as an argument to C<script_cve_id>.  The order in which
-information is reported is controlled by setting C<@func_order> in this
-script; there is no way to change it via the commandline. 
+The decision about what information to report can be controlled either
+by setting C<@funcs> in this script or by using the option
+C<--functions> on the commandline.  In either case, function names
+should be specified without the leading C<script_> string; for example,
+C<cve_id> represents the information supplied as an argument to
+C<script_cve_id>.  The order in which information is reported is
+controlled by setting C<@func_order> in this script; there is no way to
+change it via the commandline. 
 
-Some of the descriptive information in plugins is available in languages
-other than English -- typically French, but occasionally German and
-Portuguese.  You can control the language used by adjusting the variable
-C<$lang> in the source or with the option C<--language>; if information
-in the desired language is not available, this script defaults to
-English, like the NASL interpreter. 
+Some of the descriptive information is available in languages other than
+English -- typically French, but occasionally German and Portuguese. 
+You can control the language used by adjusting the variable C<$lang> in
+the source or with the option C<--language>; if information in the
+desired language is not available, this script defaults to English, like
+the NASL interpreter. 
 
 B<describe-nessus-plugin> is written in Perl.  It should work on any
 system with Perl 5.005 or better.  It also requires the following Perl
@@ -74,7 +75,7 @@ Currently, I am not aware of any bugs in this script.
 Understand that this script is not a NASL parser - on one hand, it may
 not handle some constructs the language allows; on the other, it may
 accept some the language prohibits. Still, it seems to properly process
-all the scripts currently available via C<nessus-update-plugins>. 
+all the scripts currently available via B<nessus-update-plugins>. 
 
 Long lines in the output are wrapped and indented to agree with the
 report format, which sometimes messes up formatting that plugin authors
@@ -85,6 +86,11 @@ C<script_cve_id()>, which sets the CVE IDs of the flaws tested by the
 plugin.  Additional CVE IDs, which by convention are listed in comments,
 are not reported by this script since they can not be reliably
 identified. 
+
+If you encounter a problem with this script, I encourage you to rerun it
+in debug mode (eg, add C<-d> to your commandline) and examine the
+resulting output before contacting me.  Often, this will enable you to
+resolve the problem by yourself. 
 
 
 =head1 DIAGNOSTICS
@@ -120,6 +126,12 @@ it under the same terms as Perl itself.
 
 =head1 HISTORY
 
+09-Dec-2003, v2.01, George A. Theall
+    o Added code to print an error message if no plugins are specified
+      on the commandline.
+    o Changed behaviour of C<Text::Wrap> so it does not use tabs in
+      output.
+
 03-Dec-2003, v2.00, George A. Theall
     o Rewrote major portions of the code.
     o Fixed a bug that would cause all but first X-Reference function
@@ -151,7 +163,6 @@ use Text::Wrap;
 # Initialize variables.
 $| = 1;
 my $DEBUG = 0;
-
 my %cat_labels = (                      # see nessus-core/doc/WARNING.En and
                                         #     send_plug_info() in 
                                         #     nessus-core/nessusd/comm.c
@@ -247,9 +258,15 @@ GetOptions(
     'language|l=s',
 );
 if ($options{help}) {
-    print "Usage: $0 [-d|--debug] [-f|--functions \"funcs\"] [-l|--language \"lang\"] plugin1 plugin2 ...\n";
+    print "Usage: $0 [-d|--debug] [-f|--functions \"funcs\"] [-l|--language \"lang\"] plugin1 plugin2 ...\n",
+          "  or\n",
+          "       $0 -h|-?|--help\n";
     exit(9);
 }
+unless (@ARGV) {
+    croak "*** No plugins specified on commandline! ***\n";
+}
+
 @funcs = split(/,\s*/, join(',', @{$options{functions}})) 
     if ($options{functions});
 
@@ -286,6 +303,7 @@ if ($DEBUG) {
 ############################################################################
 # Iterate over each plugin named on the commandline.
 my $contents;                           # nb: scope must be global.
+$Text::Wrap::unexpand = 0;
 foreach my $plugin (@ARGV) {
 
     # Read contents of plugin into a scalar.
@@ -295,6 +313,10 @@ foreach my $plugin (@ARGV) {
     close(FILE);
     unless ($contents) {
         warn "*** '$plugin' is empty! ***\n";
+        next;
+    }
+    unless ($contents =~ /(?s)if\s*\(\s*description\s*\)\s*{.+}/) {
+        warn "*** '$plugin' does not have a description part! ***\n";
         next;
     }
 
@@ -311,7 +333,7 @@ foreach my $plugin (@ARGV) {
             warn "*** extract_bracketed returned '$@' when parsing '$plugin'! ***\n";
         }
         else {
-            warn "*** '$plugin' does not have a description part! ***\n";
+            warn "*** Can't isolate description part of '$plugin'! ***\n";
         }
         next;
     }

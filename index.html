@@ -23,19 +23,19 @@
 
 <H3>Introduction</H3>
 
-<P>This script prints out assorted descriptive information about
-each <A HREF="http://www.nessus.org/">Nessus</A> plugin named on the
+<P>This script prints out assorted descriptive information about each <A
+HREF="http://www.nessus.org/">Nessus</A> plugin named on the
 commandline: id, name, family, category, etc.  It works by reading the
-plugin directly and parsing out the information of interest.  As such,
-it only works with plugins written in NASL (<CODE>*.nasl</CODE>), not
-those in C (<CODE>*.nes</CODE>).  It does not require access to a Nessus
-server but does require read access to the plugin.</P>
+plugin directly and parsing out the information of interest from the
+various <CODE>script_*</CODE> functions in the its description block. 
+As such, it only works with plugins written in NASL
+(<CODE>*.nasl</CODE>), not NASL include files (<CODE>*.inc</CODE>) or
+plugins written in C (<CODE>*.nes</CODE>).  It does not require access
+to a Nessus server but does require read access to the plugin.</P>
 
-<P>Descriptive information is taken from the various
-<CODE>script_*</CODE> functions in the description part of a plugin. 
-The decision about what information to report can be controlled either
-by setting <CODE>@funcs</CODE> in this script or by using the option
-<CODE>-f|--functions</CODE> on the commandline.  In either case,
+<P>The decision about what information to report can be controlled
+either by setting <CODE>@funcs</CODE> in this script or by using the
+option <CODE>--functions</CODE> on the commandline.  In either case,
 function names should be specified without the leading
 <CODE>script_</CODE> string; for example, <CODE>cve_id</CODE> represents
 the information supplied as an argument to <CODE>script_cve_id</CODE>. 
@@ -43,10 +43,10 @@ The order in which information is reported is controlled by setting
 <CODE>@func_order</CODE> in this script; there is no way to change it
 via the commandline.</P>
 
-<P>Some of the descriptive information fields in plugins are available
-in languages other than English -- typically French, but occasionally
-German and Portuguese.  You can control the language used by adjusting
-the variable <CODE>$lang</CODE> in the source or with the option
+<P>Some of the descriptive information is available in languages other
+than English -- typically French, but occasionally German and
+Portuguese.  You can control the language used by adjusting the variable
+<CODE>$lang</CODE> in the source or with the option
 <CODE>--language</CODE>; if information in the desired language is not
 available, this script defaults to English, like the NASL
 interpreter.</P>
@@ -74,11 +74,15 @@ version of Perl.</P>
 
 <OL>
    <LI>Retrieve the script 
-      <A HREF="describe-nessus-plugin">describe-nessus-plugin</A> and save it
+      <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin">describe-nessus-plugin</A> and save it
       locally.  You may also wish to verify its 
-      <A HREF="describe-nessus-plugin.md5">MD5 checksum</A> or, better, its
-      <A HREF="describe-nessus-plugin.asc">GPG signature</A> against
+      <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin.md5">MD5 checksum</A> or, better, its
+      <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin.asc">GPG signature</A> against
       <A HREF="/~theall/gpg.html">my current GPG key</A>.</LI>
+
+   <LI>Verify ownership and permissions on the script - there's no reason
+      why the script itself can't be accessed by any user.</LI>
+
    <LI>You may wish to edit the script to adjust the location of
       the perl interpreter in the first line and to set 
       <CODE>@funcs</CODE>, <CODE>%func_labels</CODE>, 
@@ -160,7 +164,7 @@ variables defined in the script itself:</P>
 may not handle some constructs the language allows; on the other, it may
 accept some the language prohibits.  Still, it seems to properly process
 all the scripts currently available via
-<CODE>nessus-update-plugins</CODE>.</P>
+<B>nessus-update-plugins</B>.</P>
 
 <P>Long lines in the output are wrapped and indented to agree with the
 report format, which sometimes messes up formatting that plugin authors
@@ -171,6 +175,11 @@ have done.</P>
 by the plugin.  Additional CVE IDs, which by convention are listed in
 comments, are not reported by this script since they can not be reliably
 identified.</P>
+
+<P>If you encounter a problem with this script, I encourage you to rerun
+it in debug mode (eg, add <CODE>-d</CODE> to your commandline) and
+examine the resulting output before contacting me.  Often, this will
+enable you to resolve the problem by yourself.</P>
 
 
 <H3>Copyright and License</H3>
@@ -193,10 +202,23 @@ it under the same terms as Perl itself.</P>
       <TH ALIGN="left">Notes<BR></TH>
    </TR>
    <TR>
+      <TH ALIGN="left" VALIGN="top">09-Dec-2003 </TH>
+      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.01">2.01</A> </TD>
+      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.01.md5">MD5</A> / 
+         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.01.asc">GPG</A> </TD>
+      <TD ALIGN="left" VALIGN="top">
+      <UL>
+         <LI>Added code to print an error message if no plugins are specified
+            on the commandline.</LI>
+         <LI>Changed behaviour of <CODE>Text::Wrap</CODE> so it does not 
+            use tabs in output.</LI>
+      </UL></TD>
+   </TR>
+   <TR>
       <TH ALIGN="left" VALIGN="top">03-Dec-2003 </TH>
-      <TD ALIGN="left" VALIGN="top"><A HREF="describe-nessus-plugin-2.00">2.00</A> </TD>
-      <TD ALIGN="left" VALIGN="top"><A HREF="describe-nessus-plugin-2.00.md5">MD5</A> / 
-         <A HREF="describe-nessus-plugin-2.00.asc">GPG</A> </TD>
+      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.00">2.00</A> </TD>
+      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.00.md5">MD5</A> / 
+         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.00.asc">GPG</A> </TD>
       <TD ALIGN="left" VALIGN="top">
       <UL>
          <LI>Rewrote major portions of the code.</LI>
@@ -211,9 +233,9 @@ it under the same terms as Perl itself.</P>
    </TR>
    <TR>
       <TH ALIGN="left" VALIGN="top">12-Oct-2003 </TH>
-      <TD ALIGN="left" VALIGN="top"><A HREF="describe-nessus-plugin-1.00">1.00</A> </TD>
-      <TD ALIGN="left" VALIGN="top"><A HREF="describe-nessus-plugin-1.00.md5">MD5</A> / 
-         <A HREF="describe-nessus-plugin-1.00.asc">GPG</A> </TD>
+      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-1.00">1.00</A> </TD>
+      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-1.00.md5">MD5</A> / 
+         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-1.00.asc">GPG</A> </TD>
       <TD ALIGN="left" VALIGN="top">
       <UL>
          <LI>Initial version.</LI>
