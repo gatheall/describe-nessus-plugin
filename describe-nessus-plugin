@@ -1,4 +1,17 @@
 #!/usr/bin/perl -wT
+#
+# ----------------------------------------------------------------------
+# describe-nessus-plugin
+#
+# Written by George A. Theall, theall@tifaware.com
+#
+# Copyright (c) 2003 - 2004, George A. Theall. All rights reserved.
+#
+# This module is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
+# $Id$
+# ---------------------------------------------------------------------
 
 
 =head1 NAME
@@ -108,50 +121,6 @@ will cause them to be reported as missing.
 L<http://cgi.nessus.org/plugins/>,
 L<http://www.nessus.org/doc/nasl2_reference.pdf>,
 L<http://www.tifaware.com/perl/describe-nessus-plugin/>. 
-
-
-=head1 AUTHOR
-
-George A. Theall, E<lt>theall@tifaware.comE<gt>
-
-
-=head1 COPYRIGHT AND LICENSE
-
-Copyright (c) 2003 - 2004, George A. Theall.
-All rights reserved.
-
-This script is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself. 
-
-
-=head1 HISTORY
-
-17-Mar-2004, v2.10, George A. Theall
-    o Added subroutine prototypes.
-    o Added limited support for the NASL function C<raw_string()>.
-    o Modified usage message and removed separate error message if no
-      plugins were specified.
-    o Modified handling of quoted values and references in C<eval_expr()>.
-    o Removed any trailing spaces from Risk Factor.
-
-09-Dec-2003, v2.01, George A. Theall
-    o Added code to print an error message if no plugins are specified
-      on the commandline.
-    o Changed behaviour of C<Text::Wrap> so it does not use tabs in
-      output.
-
-03-Dec-2003, v2.00, George A. Theall
-    o Rewrote major portions of the code.
-    o Fixed a bug that would cause all but first X-Reference function
-      in a plugin to be ignored.
-    o Added support for category ACT_FLOOD and for all descriptive 
-      functions in NASL currently.
-    o Added options for selecting prefered language as well as the
-      functions to output.
-    o Added support for wrapping long lines in output.
-
-12-Oct-2003, v1.00, George A. Theall
-    o Initial version.
 
 =cut
 
