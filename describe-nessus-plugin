@@ -236,10 +236,10 @@ GetOptions(
     'functions|f=s@',
     'help|h|?!',
     'language|l=s',
-);
+) or $options{help} = 1;
 $0 =~ s/^.+\///;
 if ($options{help} or @ARGV == 0) {
-    print "\n",
+    warn "\n",
           "Usage: $0 [options] file(s)\n",
           "\n",
           "Options:\n",
