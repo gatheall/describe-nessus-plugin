@@ -5,7 +5,7 @@
 #
 # Written by George A. Theall, theall@tifaware.com
 #
-# Copyright (c) 2003 - 2004, George A. Theall. All rights reserved.
+# Copyright (c) 2003 - 2005, George A. Theall. All rights reserved.
 #
 # This module is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
@@ -31,11 +31,14 @@ describe-nessus-plugin - describes one or more Nessus plugins.
   # Show how the script parses the specified NASL plugin.
   describe-nessus-plugin -d wip.nasl
 
-  # Report CVE ID(s) for all NASL plugins.
-  describe-nessus-plugin -f cve_id /usr/local/lib/nessus/plugins/*.nasl
+  # Report CVE ID(s) for all Oracle-related plugins.
+  describe-nessus-plugin -f cve_id /usr/local/lib/nessus/plugins/oracle*.nasl
 
-  # Report all descriptive information for all NASL plugins.
-  describe-nessus-plugin -f _all_ /usr/local/lib/nessus/plugins/*.nasl
+  # Same as above but avoid line-wrap.
+  describe-nessus-plugin -f cve_id -w 999 /usr/local/lib/nessus/plugins/oracle*.nasl
+
+  # Report all information except the description for all Apache-related plugins.
+  describe-nessus-plugin -f _all_ -f '!description' /usr/local/lib/nessus/plugins/apache*.nasl
 
 
 =head1 DESCRIPTION
@@ -236,6 +239,7 @@ GetOptions(
     'functions|f=s@',
     'help|h|?!',
     'language|l=s',
+    'width|w=i',
 ) or $options{help} = 1;
 $0 =~ s/^.+\///;
 if ($options{help} or @ARGV == 0) {
@@ -256,7 +260,9 @@ if ($options{help} or @ARGV == 0) {
           "                             Functions prefixed with '!' are ignored.\n",
           "  -l, --language <lang>      Use <lang> as language preference; must be one of\n",
           "                               'deutsch', 'english', 'francais', and\n",
-          "                               'portugues'.\n";
+          "                               'portugues'.\n",
+          "  -w, --width <width>        Use <width> as the screen width (for controlling\n",
+          "                               line wrap).\n";
     exit(9);
 }
 
@@ -296,6 +302,7 @@ if ($DEBUG) {
 ############################################################################
 # Iterate over each plugin named on the commandline.
 my $contents;                           # nb: scope must be global.
+$Text::Wrap::columns = $options{width} if (exists $options{width});
 $Text::Wrap::unexpand = 0;
 foreach my $plugin (@ARGV) {
 
