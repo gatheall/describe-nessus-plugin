@@ -117,6 +117,9 @@ variables defined in the script itself:</P>
       <CODE>$lang</CODE>. Possible languages are: <CODE>deutsch</CODE>, 
       <CODE>english</CODE>, <CODE>francais</CODE>, or 
       <CODE>portugues</CODE>.</DD>
+
+   <DT>-w, --width &lt;width&gt;</DT>
+   <DD>Use the specified screen width (to control line-wrapping)..</DD>
 </DL>
 </BLOCKQUOTE>
 
@@ -146,12 +149,15 @@ variables defined in the script itself:</P>
    <DT>Show how the script parses the specified NASL plugin.</DT>
    <DD><CODE>describe-nessus-plugin -d wip.nasl</CODE></DD>
 
-   <DT>Report CVE ID(s) for all NASL plugins.</DT>
-   <DD><CODE>describe-nessus-plugin -f cve_id /usr/local/lib/nessus/plugins/*.nasl</CODE></DD>
+   <DT>Report CVE ID(s) for all Oracle-related plugins.</DT>
+   <DD><CODE>describe-nessus-plugin -f cve_id /usr/local/lib/nessus/plugins/oracle*.nasl</CODE></DD>
 
-   <DT>Report all information except the description for all NASL plugins.</DT>
+   <DT>Same as above but avoid line-wrap.</DT>
+   <DD><CODE>describe-nessus-plugin -f cve_id -w 999 /usr/local/lib/nessus/plugins/oracle*.nasl</CODE></DD>
+
+   <DT>Report all information except the description for all Apache-related plugins.</DT>
    <DD><CODE>describe-nessus-plugin -f _all_ -f '!description'
-      /usr/local/lib/nessus/plugins/*.nasl</CODE></DD>
+      /usr/local/lib/nessus/plugins/apache*.nasl</CODE></DD>
 </DL>
 </BLOCKQUOTE>
 
@@ -190,7 +196,7 @@ enable you to resolve the problem by yourself.</P>
 
 <H3>Copyright and License</H3>
 
-<P>Copyright (c) 2003 - 2004, George A. Theall.<BR>
+<P>Copyright (c) 2003 - 2005, George A. Theall.<BR>
 All rights reserved.</P>
 
 <P>This script is free software; you can redistribute it and/or modify
@@ -206,6 +212,16 @@ it under the same terms as Perl itself.</P>
       <TH ALIGN="left">Version </TH>
       <TH ALIGN="left">Verification </TH>
       <TH ALIGN="left">Notes<BR></TH>
+   </TR>
+   <TR>
+      <TH ALIGN="left" VALIGN="top">07-Aug-2005 </TH>
+      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.20">2.20</A> </TD>
+      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.20.md5">MD5</A> / 
+         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.20.asc">GPG</A> </TD>
+      <TD ALIGN="left" VALIGN="top">
+      <UL>
+         <LI>Added <CODE>-w</CODE> option for controlling line-wrapping.</LI>
+      </UL></TD>
    </TR>
    <TR>
       <TH ALIGN="left" VALIGN="top">17-Mar-2004 </TH>
