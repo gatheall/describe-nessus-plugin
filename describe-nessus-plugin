@@ -467,13 +467,14 @@ foreach my $plugin (@ARGV) {
                 # nb: pattern catches last instance of risk factor and uses
                 #     rest of the line, until the last non-whitespace 
                 #     character (to avoid trailing whitespace).
-                if ($argstr =~ /.+(Risk|Risk\s+factor)\s*:\s*([^\n]*\S)/is);
+                if ($argstr =~ /.+(Risk|Risk\s+factor)\s*:\s*(\S+\s+\/\s+CVSS [^"']+|[^\n]*\S)/is);
+            $info{risk} =~ s/\n+/ /s;
         }
 
         # Removing newlines except those separating paragraphs.
         $argstr =~ s/^\n*(.*)\n*$/$1/s;
         $argstr =~ s/\n{3,}/\n\n/sg;
-        $argstr =~ s/(\S)[ \t]*\n(?!(\-|(Note|Risk(\s*Factor)?|Solution)\s*:))(\S)/$1 $5/sig;
+        $argstr =~ s/(\S)[ \t]*\n(?!(\-|(Synopsis|Description|Note|See also|Solution|Risk(\s*Factor)?)\s*:))(\S)/$1 $5/sig;
 
         # Stash $argstr for the report, allowing for multiple occurences.
         warn "debug:       arg string at end is '$argstr'.\n" if $DEBUG;
