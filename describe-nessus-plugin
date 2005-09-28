@@ -463,12 +463,13 @@ foreach my $plugin (@ARGV) {
         #
         # nb: this must occur *before* removing newlines.
         if ($func eq 'description' and grep($_ eq 'risk', @funcs)) {
-            $info{risk} = $2 
-                # nb: pattern catches last instance of risk factor and uses
-                #     rest of the line, until the last non-whitespace 
-                #     character (to avoid trailing whitespace).
-                if ($argstr =~ /.+(Risk|Risk\s+factor)\s*:\s*(\S+\s+\/\s+CVSS [^"']+|[^\n]*\S)/is);
-            $info{risk} =~ s/\n+/ /s;
+            # nb: pattern catches last instance of risk factor and uses
+            #     rest of the line, until the last non-whitespace 
+            #     character (to avoid trailing whitespace).
+            if ($argstr =~ /.+(Risk|Risk\s+factor)\s*:\s*(\S+\s+\/\s+CVSS [^"']+|[^\n]*\S)/is) {
+                $info{risk} = $2;
+                $info{risk} =~ s/\n+/ /s;
+            }
         }
 
         # Removing newlines except those separating paragraphs.
