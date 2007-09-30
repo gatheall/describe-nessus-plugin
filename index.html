@@ -189,11 +189,19 @@ all the scripts currently available via
 report format, which sometimes messes up formatting that plugin authors
 have done.</P>
 
-<P>There is a limit to the size of the arguments passed to
-<CODE>script_cve_id()</CODE>, which sets the CVE IDs of the flaws tested
-by the plugin.  Additional CVE IDs, which by convention are listed in
-comments, are not reported by this script since they can not be reliably
-identified.</P>
+<P>Some older plugins list some cross-references in comments due to
+limitations on the number of such references that were supported in
+earlier versions.  They are not reported by this script since they can
+not be reliably identified.</P>
+
+<P><B>describe-nessus-plugin</B> may report that a plugin does not have
+a description part.  This occurs when a plugin has been effectively
+disabled in a feed; eg, <CODE>sendmail_wiz.nasl</CODE>.
+
+<P><B>describe-nessus-plugin</B> can not handle the description in
+<CODE>gentoo_GLSA-200411-32.nasl</CODE> because
+<CODE>Text::Balanced</CODE> fails to parse the code snippet included in
+the description.</P>
 
 <P>If you encounter a problem with this script, I encourage you to rerun
 it in debug mode (eg, add <CODE>-d</CODE> to your commandline) and
@@ -203,7 +211,7 @@ enable you to resolve the problem by yourself.</P>
 
 <H3>Copyright and License</H3>
 
-<P>Copyright (c) 2003 - 2005, George A. Theall.<BR>
+<P>Copyright (c) 2003 - 2007, George A. Theall.<BR>
 All rights reserved.</P>
 
 <P>This script is free software; you can redistribute it and/or modify
