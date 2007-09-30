@@ -134,6 +134,13 @@ variables defined in the script itself:</P>
       string or by multiple argument pairs.  For example, <CODE>-f 
       "cve_id,bugtraq"</CODE> is equivalent to <CODE>-f cve_id -f 
       bugtraq</CODE>.</LI>
+
+   <LI>This script reportedly runs fine under Windows, although it 
+      does not handle wildcard expansion out of the box. You 
+      can work around this by creating <CODE>Wild.pm</CODE> and adding
+      <CODE>-MWild</CODE> to the commandline as described in the
+      <A HREF="http://perldoc.perl.org/perlwin32.html">perlwin32</A>
+      documentation.</LI>
 </UL>
 
 <P>Examples:</P>
