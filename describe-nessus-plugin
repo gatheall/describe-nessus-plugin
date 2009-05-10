@@ -24,10 +24,6 @@ describe-nessus-plugin - describes one or more Nessus plugins.
   # Describe assorted NASL plugins related to MS SQL.
   describe-nessus-plugin /usr/local/lib/nessus/plugins/mssql*.nasl
 
-  # Describe assorted NASL plugins related to Zope using 
-  #   French strings whenever possible.
-  describe-nessus-plugin -l francais /usr/local/lib/nessus/plugins/zope*.nasl
-
   # Show how the script parses the specified NASL plugin.
   describe-nessus-plugin -d wip.nasl
 
