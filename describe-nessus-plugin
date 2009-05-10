@@ -327,7 +327,7 @@ foreach my $plugin (@ARGV) {
 
     # Parse description info.
     warn "debug:   parsing description info.\n" if $DEBUG;
-    my %info;
+    my (%attrs, %info);
     # nb: spurious leading characters are removed since extract_bracketed()
     #     expects string to start with '(' in order to isolate the argument.
     while ($desc =~ s/^(?s).*?script_(\w+)\s*\(/(/) {
@@ -344,7 +344,11 @@ foreach my $plugin (@ARGV) {
                     # nb: name is used in outputing info about add_preference.
                     ($func eq 'name' and $_ eq 'add_preference') or
                     # nb: risk is embedded in description, not a separate function.
-                    ($func eq 'description' and $_ eq 'risk')
+                    ($func eq 'description' and $_ eq 'risk') or
+                    # nb: set_attribute is used to build the description.
+                    ($func eq 'set_attribute' and ($_ eq 'description' or $_ eq 'risk')) or
+                    # nb: and end_attribute to finish it up.
+                    $func eq 'end_attributes'
                 ), 
                 @funcs
             )
@@ -356,6 +360,23 @@ foreach my $plugin (@ARGV) {
             $desc,
             '()',
         );
+
+        # Handle new compatibility API.
+        if ($func eq 'end_attributes') {
+          $func = 'description';
+          $argstr = "";
+
+          foreach my $attr ('Synopsis', 'Description', 'See also', 'Solution', 'Risk factor') {
+            $attrs{$attr} = "None" if ($attr eq 'Risk factor' and !exists($attrs{$attr}));
+
+            $argstr .= (length($argstr) ? "\n\n" : "") . 
+                       $attr . " :\n\n" . $attrs{$attr} if (exists $attrs{$attr});
+          }
+          $info{$func} = $argstr;
+          warn "debug:       arg string at end is '$argstr'.\n" if $DEBUG;
+          next;
+        }
+
         unless ($argstr and $argstr =~ s/^(?s)\(\s*(.+)\s*\)$/$1/) {
             warn "*** Can't identify arg string for '$func' in '$plugin'! ***\n";
             next;
@@ -431,6 +452,50 @@ foreach my $plugin (@ARGV) {
             }
             else {
                 warn "*** Can't handle arguments for 'xref' in '$plugin'! ***\n";
+                next;
+            }
+        }
+        elsif ($func eq 'set_attribute') {
+            if (exists($named_args{attribute}) and exists($named_args{value})) {
+                my $attr = $named_args{attribute};
+                my $val = $named_args{value};
+
+                if ($attr eq 'cvss_vector') {
+                  my $score = &calc_cvss($val);
+                  if ($score)
+                  {
+                    my $risk;
+                    $risk = "Critical" if ($score == 10);
+                    $risk = "High"     if ($score >= 7.0 and $score < 10);
+                    $risk = "Medium"   if ($score >= 4.0 and $score < 7);
+                    $risk = "Low"      if ($score >= 0 and $score < 4);
+                    $risk = "None"     if ($score == 0);
+
+                    $attr = "Risk factor";
+                    $val = "$risk / CVSS Base Score : " . $score . " (" . $val . ")";
+
+                    $info{risk} = $val;
+                  }
+                }
+
+                $attr =~ s/^(.)(.+)$/\U$1\E$2/;
+                $attr =~ s/_/ /;
+                warn "debug:       attribute for set_attribute is '$attr'\n";
+
+                # Removing newlines except those separating paragraphs.
+                $val =~ s/([^\n])\n([^\n])/$1 $2/sg;
+                warn "debug:       value for set_attribute is '$val'\n";
+
+                if ($attr eq 'See also' and exists $attrs{$attr}) {
+                  $attrs{$attr} .= "\n" . $val;
+                }
+                else {
+                  $attrs{$attr} = $val;
+                }
+                next;
+            }
+            else {
+                warn "*** Can't handle arguments for 'set_attribute' in '$plugin'! ***\n";
                 next;
             }
         }
@@ -714,4 +779,38 @@ sub eval_expr($) {
     $expr = $name . ':' . $expr if ($name);
     warn "debug eval_expr: result is '$expr'.\n" if $DEBUG;
     return $expr;
+}
+
+
+############################################################################
+# Calculate a CVSS base score.
+sub calc_cvss {
+  my($vector) = shift;
+
+  my $score = 0;
+  # CVSS v2
+  if ($vector =~ /^CVSS2#AV:(L|A|N)\/AC:(L|M|H)\/Au:(N|S|M)\/C:(N|P|C)\/I:(N|P|C)\/A:(N|P|C)$/) {
+    my($av, $ac, $au, $c, $i, $a) = ($1, $2, $3, $4, $5, $6);
+    $av = (0.395*($av eq 'L') + 0.646*($av eq 'A') + 1.0*($av eq 'N'));
+    $ac = (0.35*($ac eq 'H') + 0.61*($ac eq 'M') + 0.71*($ac eq 'L'));
+    $au = (0.450*($au eq 'M') + 0.560*($au eq 'S') + 0.704*($au eq 'N'));
+    $c = (0.275*($c eq 'P') + 0.660*($c eq 'C'));
+    $i = (0.275*($i eq 'P') + 0.660*($i eq 'C'));
+    $a = (0.275*($a eq 'P') + 0.660*($a eq 'C'));
+
+    my $fx = ($c == 0 && $i == 0 && $a == 0) ? 0 : 1.176;
+
+    $score = 
+      (
+        0.6*(10.41*(1-(1-$c)*(1-$i)*(1-$a))) +
+        0.4*(20*$ac*$au*$av) +
+        -1.5
+      ) * $fx;
+    $score = sprintf("%.1f", $score);
+
+    return $score;
+  }
+  else {
+    warn "*** '$vector' is not a valid vector for CVSS base score! ***\n";
+  }
 }
