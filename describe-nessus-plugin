@@ -5,7 +5,7 @@
 #
 # Written by George A. Theall, theall@tifaware.com
 #
-# Copyright (c) 2003 - 2005, George A. Theall. All rights reserved.
+# Copyright (c) 2003-2009, George A. Theall. All rights reserved.
 #
 # This module is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
@@ -60,13 +60,6 @@ C<cve_id> represents the information supplied as an argument to
 C<script_cve_id>.  The order in which information is reported is
 controlled by setting C<@func_order> in this script; there is no way to
 change it via the commandline. 
-
-Some of the descriptive information is available in languages other than
-English -- typically French, but occasionally German and Portuguese. 
-You can control the language used by adjusting the variable C<$lang> in
-the source or with the option C<--language>; if information in the
-desired language is not available, this script defaults to English, like
-the NASL interpreter. 
 
 B<describe-nessus-plugin> is written in Perl.  It should work on any
 system with Perl 5.005 or better.  It also requires the following Perl
@@ -230,7 +223,6 @@ sub eval_expr($);
 # Process commandline arguments.
 my %options = (
     'debug'       => \$DEBUG,
-    'language'    => \$lang,
 );
 Getopt::Long::Configure('bundling');
 GetOptions(
@@ -238,7 +230,6 @@ GetOptions(
     'debug|d!',
     'functions|f=s@',
     'help|h|?!',
-    'language|l=s',
     'width|w=i',
 ) or $options{help} = 1;
 $0 =~ s/^.+\///;
@@ -258,9 +249,6 @@ if ($options{help} or @ARGV == 0) {
           "                               'require_udp_ports', 'risk', 'summary',\n",
           "                               'timeout', 'version', 'xref', and '_all_'.\n",
           "                             Functions prefixed with '!' are ignored.\n",
-          "  -l, --language <lang>      Use <lang> as language preference; must be one of\n",
-          "                               'deutsch', 'english', 'francais', and\n",
-          "                               'portugues'.\n",
           "  -w, --width <width>        Use <width> as the screen width (for controlling\n",
           "                               line wrap).\n";
     exit(9);
