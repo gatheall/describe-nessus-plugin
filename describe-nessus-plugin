@@ -480,11 +480,11 @@ foreach my $plugin (@ARGV) {
 
                 $attr =~ s/^(.)(.+)$/\U$1\E$2/;
                 $attr =~ s/_/ /;
-                warn "debug:       attribute for set_attribute is '$attr'\n";
+                warn "debug:       attribute for set_attribute is '$attr'\n" if $DEBUG:
 
                 # Removing newlines except those separating paragraphs.
                 $val =~ s/([^\n])\n([^\n])/$1 $2/sg;
-                warn "debug:       value for set_attribute is '$val'\n";
+                warn "debug:       value for set_attribute is '$val'\n" if $DEBUG;
 
                 if ($attr eq 'See also' and exists $attrs{$attr}) {
                   $attrs{$attr} .= "\n" . $val;
