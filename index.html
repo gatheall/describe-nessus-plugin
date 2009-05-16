@@ -43,14 +43,6 @@ The order in which information is reported is controlled by setting
 <CODE>@func_order</CODE> in this script; there is no way to change it
 via the commandline.</P>
 
-<P>Some of the descriptive information is available in languages other
-than English -- typically French, but occasionally German and
-Portuguese.  You can control the language used by adjusting the variable
-<CODE>$lang</CODE> in the source or with the option
-<CODE>--language</CODE>; if information in the desired language is not
-available, this script defaults to English, like the NASL
-interpreter.</P>
-
 <P><B>describe-nessus-plugin</B> is written in Perl.  It should work on
 any system with Perl 5.005 or better.  It also requires the following
 Perl modules:</P>
@@ -112,12 +104,6 @@ variables defined in the script itself:</P>
       can be used to represent all possible functions and the prefix 
       <CODE>!</CODE> to skip specific ones.</DD>
 
-   <DT>-l, --language &lt;lang&gt;</DT>
-   <DD>Select language preference for descriptive information, overriding
-      <CODE>$lang</CODE>. Possible languages are: <CODE>deutsch</CODE>, 
-      <CODE>english</CODE>, <CODE>francais</CODE>, or 
-      <CODE>portugues</CODE>.</DD>
-
    <DT>-w, --width &lt;width&gt;</DT>
    <DD>Use the specified screen width (to control line-wrapping)..</DD>
 </DL>
@@ -148,10 +134,6 @@ variables defined in the script itself:</P>
 <DL>
    <DT>Describe assorted NASL plugins related to MS SQL.</DT>
    <DD><CODE>describe-nessus-plugin /usr/local/lib/nessus/plugins/mssql*.nasl</CODE></DD>
-
-   <DT>Describe assorted NASL plugins related to Zope using French 
-      strings whenever possible.</DT>
-   <DD><CODE>describe-nessus-plugin -l francais /usr/local/lib/nessus/plugins/zope*.nasl</CODE></DD>
 
    <DT>Show how the script parses the specified NASL plugin.</DT>
    <DD><CODE>describe-nessus-plugin -d wip.nasl</CODE></DD>
@@ -211,7 +193,7 @@ enable you to resolve the problem by yourself.</P>
 
 <H3>Copyright and License</H3>
 
-<P>Copyright (c) 2003 - 2007, George A. Theall.<BR>
+<P>Copyright (c) 2003-2009, George A. Theall.<BR>
 All rights reserved.</P>
 
 <P>This script is free software; you can redistribute it and/or modify
@@ -227,6 +209,17 @@ it under the same terms as Perl itself.</P>
       <TH ALIGN="left">Version </TH>
       <TH ALIGN="left">Verification </TH>
       <TH ALIGN="left">Notes<BR></TH>
+   </TR>
+   <TR>
+      <TH ALIGN="left" VALIGN="top">16-May-2009 </TH>
+      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.23">2.23</A> </TD>
+      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.23.md5">MD5</A> / 
+         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.23.asc">GPG</A> </TD>
+      <TD ALIGN="left" VALIGN="top">
+      <UL>
+         <LI>Added support for Nessus's new compat.inc include file.</LI>
+         <LI>Removed support for specifying the language on the commandline.</LI>
+      </UL></TD>
    </TR>
    <TR>
       <TH ALIGN="left" VALIGN="top">27-Sep-2005 </TH>
