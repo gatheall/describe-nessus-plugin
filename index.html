@@ -29,9 +29,11 @@ commandline: id, name, family, category, etc.  It works by reading the
 plugin directly and parsing out the information of interest from the
 various <CODE>script_*</CODE> functions in the its description block. 
 As such, it only works with plugins written in NASL
-(<CODE>*.nasl</CODE>), not NASL include files (<CODE>*.inc</CODE>) or
-plugins written in C (<CODE>*.nes</CODE>).  It does not require access
-to a Nessus server but does require read access to the plugin.</P>
+(<CODE>*.nasl</CODE>), not NASL include files (<CODE>*.inc</CODE>),
+plugins written in C (<CODE>*.nes</CODE>), or compiled plugins
+(<CODE>*.nbin</CODE>) or libraries (<CODE>*.nlib</CODE>).  It does not
+require access to a Nessus server but does require read access to the
+plugin.</P>
 
 <P>The decision about what information to report can be controlled
 either by setting <CODE>@funcs</CODE> in this script or by using the
@@ -164,8 +166,7 @@ spreadsheet or possibly a database.</P>
 <P>Understand that this script is not a NASL parser - on one hand, it
 may not handle some constructs the language allows; on the other, it may
 accept some the language prohibits.  Still, it seems to properly process
-all the scripts currently available via
-<B>nessus-update-plugins</B>.</P>
+most of the scripts currently available in the plugin feed.</P>
 
 <P>Long lines in the output are wrapped and indented to agree with the
 report format, which sometimes messes up formatting that plugin authors
@@ -209,6 +210,17 @@ it under the same terms as Perl itself.</P>
       <TH ALIGN="left">Version </TH>
       <TH ALIGN="left">Verification </TH>
       <TH ALIGN="left">Notes<BR></TH>
+   </TR>
+   <TR>
+      <TH ALIGN="left" VALIGN="top">27-Jun-2009 </TH>
+      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.24">2.24</A> </TD>
+      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.24.md5">MD5</A> / 
+         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.24.asc">GPG</A> </TD>
+      <TD ALIGN="left" VALIGN="top">
+      <UL>
+         <LI>Added support for <CODE>ACT_INIT</CODE> and <CODE>ACT_END2</CODE>.</LI>
+         <LI>Relabelled <CODE>ACT_END</CODE>.</LI>
+      </UL></TD>
    </TR>
    <TR>
       <TH ALIGN="left" VALIGN="top">16-May-2009 </TH>
