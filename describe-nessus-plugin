@@ -110,7 +110,7 @@ will cause them to be reported as missing.
 
 =head1 SEE ALSO
 
-L<http://cgi.nessus.org/plugins/>,
+L<http://www.nessus.org/plugins/index.php?view=all>,
 L<http://www.nessus.org/doc/nasl2_reference.pdf>,
 L<http://www.tifaware.com/perl/describe-nessus-plugin/>. 
 
