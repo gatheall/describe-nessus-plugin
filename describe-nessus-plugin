@@ -5,7 +5,7 @@
 #
 # Written by George A. Theall, theall@tifaware.com
 #
-# Copyright (c) 2003-2009, George A. Theall. All rights reserved.
+# Copyright (c) 2003-2010, George A. Theall. All rights reserved.
 #
 # This module is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
@@ -347,6 +347,8 @@ foreach my $plugin (@ARGV) {
                     ($func eq 'name' and $_ eq 'add_preference') or
                     # nb: risk is embedded in description, not a separate function.
                     ($func eq 'description' and $_ eq 'risk') or
+                    # nb: osvdb can be a separate function.
+                    ($func eq 'osvdb_id' and $_ eq 'xref') or
                     # nb: set_attribute is used to build the description.
                     ($func eq 'set_attribute' and ($_ eq 'description' or $_ eq 'risk')) or
                     # nb: and end_attribute to finish it up.
@@ -422,9 +424,17 @@ foreach my $plugin (@ARGV) {
         foreach (@args) {
             $_ = eval_expr($_);
         }
-        my %named_args = map { /^(?s)(\w+)\s*:\s*(.*)$/ && $1 => $2 } @args;
+
+        # Rewrite OSVDB ids.
+        if ($func eq 'osvdb_id') {
+          @args = grep(s/$_/value:$_/, @args);
+          unshift(@args, 'name:OSVDB');
+          $func = 'xref';
+        }
 
         # Handle other named variables.
+        my %named_args = map { /^(?s)(\w+)\s*:\s*(.*)$/ && $1 => $2 } @args;
+
         if ($func eq 'add_preference') {
             if (exists($named_args{name}) and exists($named_args{type}) and exists($named_args{value})) {
                 if ($named_args{type} eq 'radio') {
@@ -555,11 +565,11 @@ foreach my $plugin (@ARGV) {
     print "$plugin\n";
     foreach my $func (@func_order) {
         next unless (grep($func eq $_, @funcs));
-        my $label = exists($func_labels{$func}) ? $func_labels{$func} : $_;
+        my $label = exists($func_labels{$func}) ? $func_labels{$func} : $func;
         print wrap(
             "", 
             " " x ($width+4), 
-            sprintf "  %-${width}s  %s", "$label:", $info{$func} || 'n/a'
+            "  $label:", " " x ($width-length($label)), ($info{$func} || 'n/a')
         ), "\n";
     }
     print "\n";
