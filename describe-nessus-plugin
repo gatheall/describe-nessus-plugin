@@ -425,13 +425,6 @@ foreach my $plugin (@ARGV) {
             $_ = eval_expr($_);
         }
 
-        # Rewrite OSVDB ids.
-        if ($func eq 'osvdb_id') {
-          @args = grep(s/$_/value:$_/, @args);
-          unshift(@args, 'name:OSVDB');
-          $func = 'xref';
-        }
-
         # Handle other named variables.
         my %named_args = map { /^(?s)(\w+)\s*:\s*(.*)$/ && $1 => $2 } @args;
 
@@ -466,6 +459,10 @@ foreach my $plugin (@ARGV) {
                 warn "*** Can't handle arguments for 'xref' in '$plugin'! ***\n";
                 next;
             }
+        }
+        elsif ($func eq 'osvdb_id') {
+          @args = grep(s/$_/OSVDB:$_/, @args);
+          $func = 'xref';
         }
         elsif ($func eq 'set_attribute') {
             if (exists($named_args{attribute}) and exists($named_args{value})) {
@@ -511,6 +508,7 @@ foreach my $plugin (@ARGV) {
                 next;
             }
         }
+
 
         # Regenerate $argstr.
         $argstr = join(", ", @args);
