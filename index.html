@@ -182,9 +182,9 @@ a description part.  This occurs when a plugin has been effectively
 disabled in a feed; eg, <CODE>sendmail_wiz.nasl</CODE>.
 
 <P><B>describe-nessus-plugin</B> can not handle the description in
-<CODE>gentoo_GLSA-200411-32.nasl</CODE> because
-<CODE>Text::Balanced</CODE> fails to parse the code snippet included in
-the description.</P>
+<CODE>gentoo_GLSA-200411-32.nasl</CODE> and several other local checks
+because <CODE>Text::Balanced</CODE> fails to parse the code snippet
+included in the description.</P>
 
 <P>If you encounter a problem with this script, I encourage you to rerun
 it in debug mode (eg, add <CODE>-d</CODE> to your commandline) and
@@ -194,7 +194,7 @@ enable you to resolve the problem by yourself.</P>
 
 <H3>Copyright and License</H3>
 
-<P>Copyright (c) 2003-2009, George A. Theall.<BR>
+<P>Copyright (c) 2003-2010, George A. Theall.<BR>
 All rights reserved.</P>
 
 <P>This script is free software; you can redistribute it and/or modify
@@ -210,6 +210,18 @@ it under the same terms as Perl itself.</P>
       <TH ALIGN="left">Version </TH>
       <TH ALIGN="left">Verification </TH>
       <TH ALIGN="left">Notes<BR></TH>
+   </TR>
+   <TR>
+      <TH ALIGN="left" VALIGN="top">27-Jun-2010 </TH>
+      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.25">2.25</A> </TD>
+      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.25.md5">MD5</A> / 
+         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.25.asc">GPG</A> </TD>
+      <TD ALIGN="left" VALIGN="top">
+      <UL>
+         <LI>Added support for new 'script_osvdb_id' function.</LI>
+         <LI>Fixed buglet that could have resulted in a missing label.</LI>
+         <LI>Fixed <CODE>Insecure dependency</CODE> error introduced with Perl 5.10.</LI>
+      </UL></TD>
    </TR>
    <TR>
       <TH ALIGN="left" VALIGN="top">27-Jun-2009 </TH>
