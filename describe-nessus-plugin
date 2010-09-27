@@ -351,6 +351,8 @@ foreach my $plugin (@ARGV) {
                     ($func eq 'osvdb_id' and $_ eq 'xref') or
                     # nb: set_attribute is used to build the description.
                     ($func eq 'set_attribute' and ($_ eq 'description' or $_ eq 'risk')) or
+                    # nb: script_set_cvss_base_vector can be used for the risk
+                    ($func eq 'set_cvss_base_vector' and ($_ eq 'description' or $_ eq 'risk')) or
                     # nb: and end_attribute to finish it up.
                     $func eq 'end_attributes'
                 ), 
@@ -464,7 +466,11 @@ foreach my $plugin (@ARGV) {
           @args = grep(s/$_/OSVDB:$_/, @args);
           $func = 'xref';
         }
-        elsif ($func eq 'set_attribute') {
+        elsif ($func eq 'set_attribute' or $func eq 'set_cvss_base_vector') {
+            if ($func eq 'set_cvss_base_vector') {
+                $named_args{attribute} = 'cvss_vector';
+                $named_args{value} = $args[0];
+            }
             if (exists($named_args{attribute}) and exists($named_args{value})) {
                 my $attr = $named_args{attribute};
                 my $val = $named_args{value};
