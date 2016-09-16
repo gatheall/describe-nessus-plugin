@@ -16,7 +16,7 @@ If your system does not have these modules installed already, visit [CPAN](http:
 
 ## Installation
 
-* Retrieve [the script](update-nessus-plugins) and save it locally.
+* Retrieve [the script](describe-nessus-plugin) and save it locally.
 * Verify ownership and permissions on the script - there's no reason why the script itself can't be accessed by any user.
 * You may wish to edit the script to adjust the location of the perl interpreter in the first line and to set `@funcs`, `%func_labels`, `@func_order`, and `$lang` to suit your tastes.
 
