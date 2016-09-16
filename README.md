@@ -1,364 +1,76 @@
-<HTML>
-<HEAD>
-<TITLE>describe-nessus-plugin</TITLE>
-<LINK REV="made" HREF="mailto:theall@tifaware.com">
-<LINK REL="shortcut icon" HREF="http://www.tifaware.com/favicon.ico">
-</HEAD>
+## Introduction
 
-<!--#include virtual="/header.html"-->
-<!--#if expr="$weblint" -->
-<BODY BGCOLOR="#FFFFFF">
-<!--#endif -->
+This script prints out assorted descriptive information about each [Nessus](http://www.tenable.com/products/nessus-vulnerability-scanner) plugin named on the commandline: id, name, family, category, etc.  It works by reading the plugin directly and parsing out the information of interest from the various `script_*` functions in the its description block.  As such, it only works with plugins written in NASL (`*.nasl`), not NASL include files (`*.inc`), plugins written in C (`*.nes`), or compiled plugins (`*.nbin`) or libraries (`*.nlib`).  It does not require access to a Nessus server but does require read access to the plugin.
 
+The decision about what information to report can be controlled either by setting `@funcs` in this script or by using the option `--functions` on the commandline.  In either case, function names should be specified without the leading `script_` string; for example, `cve_id` represents the information supplied as an argument to `script_cve_id`.  The order in which information is reported is controlled by setting `@func_order` in this script; there is no way to change it via the commandline.
 
-<H4 ALIGN="center">
-   <A HREF="/">TifaWARE</A> |
-   <A HREF="../">Perl Programs</A> |
-   describe-nessus-plugin
-</H4>
-                                                                                
-                                                                                
-<HR>
-<H2>describe-nessus-plugin</H2>
+*describe-nessus-plugin* is written in Perl.  It should work on any system with Perl 5.005 or better.  It also requires the following Perl modules:
 
-<H3>Introduction</H3>
+* `Carp`
+* `Getopt::Long`
+* `Text::Balanced`
+* `Text::Wrap`
 
-<P>This script prints out assorted descriptive information about each <A
-HREF="http://www.nessus.org/">Nessus</A> plugin named on the
-commandline: id, name, family, category, etc.  It works by reading the
-plugin directly and parsing out the information of interest from the
-various <CODE>script_*</CODE> functions in the its description block. 
-As such, it only works with plugins written in NASL
-(<CODE>*.nasl</CODE>), not NASL include files (<CODE>*.inc</CODE>),
-plugins written in C (<CODE>*.nes</CODE>), or compiled plugins
-(<CODE>*.nbin</CODE>) or libraries (<CODE>*.nlib</CODE>).  It does not
-require access to a Nessus server but does require read access to the
-plugin.</P>
-
-<P>The decision about what information to report can be controlled
-either by setting <CODE>@funcs</CODE> in this script or by using the
-option <CODE>--functions</CODE> on the commandline.  In either case,
-function names should be specified without the leading
-<CODE>script_</CODE> string; for example, <CODE>cve_id</CODE> represents
-the information supplied as an argument to <CODE>script_cve_id</CODE>. 
-The order in which information is reported is controlled by setting
-<CODE>@func_order</CODE> in this script; there is no way to change it
-via the commandline.</P>
-
-<P><B>describe-nessus-plugin</B> is written in Perl.  It should work on
-any system with Perl 5.005 or better.  It also requires the following
-Perl modules:</P>
-
-<UL>
-   <LI><CODE>Carp</CODE></LI>
-   <LI><CODE>Getopt::Long</CODE></LI>
-   <LI><CODE>Text::Balanced</CODE></LI>
-   <LI><CODE>Text::Wrap</CODE></LI>
-</UL>
-
-<P>If your system does not have these modules installed already, visit
-<A HREF="http://search.cpan.org/">CPAN</A> for help.  Note that
-<CODE>Text::Balanced</CODE> does not work with versions of Perl older
-than 5.005; further, it is not included with Perl distributions prior to
-5.8.0 so you will probably need to install it if you're running an older
-version of Perl.</P>
+If your system does not have these modules installed already, visit [CPAN](http://search.cpan.org/). Note that `Text::Balanced` does not work with versions of Perl older than 5.005; further, it is not included with Perl distributions prior to 5.8.0 so you will probably need to install it if you're running an older version of Perl.
 
 
-<H3>Installation</H3>
+## Installation
 
-<OL>
-   <LI>Retrieve the script 
-      <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin">describe-nessus-plugin</A> and save it
-      locally.  You may also wish to verify its 
-      <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin.md5">MD5 checksum</A> or, better, its
-      <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin.asc">GPG signature</A> against
-      <A HREF="/~theall/gpg.html">my current GPG key</A>.</LI>
-
-   <LI>Verify ownership and permissions on the script - there's no reason
-      why the script itself can't be accessed by any user.</LI>
-
-   <LI>You may wish to edit the script to adjust the location of
-      the perl interpreter in the first line and to set 
-      <CODE>@funcs</CODE>, <CODE>%func_labels</CODE>, 
-      <CODE>@func_order</CODE>, and <CODE>$lang</CODE> to suit 
-      your tastes.</LI>
-</OL>
+* Retrieve [the script](update-nessus-plugins) and save it locally.
+* Verify ownership and permissions on the script - there's no reason why the script itself can't be accessed by any user.
+* You may wish to edit the script to adjust the location of the perl interpreter in the first line and to set `@funcs`, `%func_labels`, `@func_order`, and `$lang` to suit your tastes.
 
 
-<H3>Use</H3>
+## Use
 
-<P>There are several commandline arguments you can use to override 
-variables defined in the script itself:</P>
+There are several commandline arguments you can use to override variables defined in the script itself:
 
-<BLOCKQUOTE>
-<DL>
-   <DT>-d, --debug</DT>
-   <DD>Display debugging messages while running.</DD>
+| Option | Meaning |
+| ------ | ------- |
+| -d, --debug | Display debugging messages while running. |
+| -f, --functions <funcs> | Display information for the specified functions, overriding `@funcs`. Function names are equal to the NASL descriptive information functions, with the leading string `script_` removed. `risk` can also be specified as a function name; it refers to the risk factor, which by convention is specified as part of `script_description`. In addition, `_all_` can be used to represent all possible functions and the prefix `!` to skip specific ones. |
+| -w, --width <width> | Use the specified screen width (to control line-wrapping).. |
 
-   <DT>-f, --functions &lt;funcs&gt;</DT>
-   <DD>Display information for the specified functions, overriding
-      <CODE>@funcs</CODE>. Function names are equal to the NASL 
-      descriptive information functions, with the leading string 
-      <CODE>script_</CODE> removed. <CODE>risk</CODE> can also be
-      specified as a function name; it refers to the risk factor,
-      which by convention is specified as part of 
-      <CODE>script_description</CODE>. In addition, <CODE>_all_</CODE>
-      can be used to represent all possible functions and the prefix 
-      <CODE>!</CODE> to skip specific ones.</DD>
+Notes:
 
-   <DT>-w, --width &lt;width&gt;</DT>
-   <DD>Use the specified screen width (to control line-wrapping)..</DD>
-</DL>
-</BLOCKQUOTE>
-
-<P>Notes:</P>
-<UL>
-   <LI>Commandline arguments take precedence over variables defined in the
-      script. For example, you can describe all functions by using the
-      commandline argument <CODE>-f _all_</CODE> regardless of how
-      <CODE>@funcs</CODE> is defined in the script.</LI>
-
-   <LI>Multiple functions can be specified either by a comma-delimited 
-      string or by multiple argument pairs.  For example, <CODE>-f 
-      "cve_id,bugtraq"</CODE> is equivalent to <CODE>-f cve_id -f 
-      bugtraq</CODE>.</LI>
-
-   <LI>This script reportedly runs fine under Windows, although it 
-      does not handle wildcard expansion out of the box. You 
-      can work around this by creating <CODE>Wild.pm</CODE> and adding
-      <CODE>-MWild</CODE> to the commandline as described in the
-      <A HREF="http://perldoc.perl.org/perlwin32.html">perlwin32</A>
-      documentation.</LI>
-</UL>
-
-<P>Examples:</P>
-<BLOCKQUOTE>
-<DL>
-   <DT>Describe assorted NASL plugins related to MS SQL.</DT>
-   <DD><CODE>describe-nessus-plugin /usr/local/lib/nessus/plugins/mssql*.nasl</CODE></DD>
-
-   <DT>Show how the script parses the specified NASL plugin.</DT>
-   <DD><CODE>describe-nessus-plugin -d wip.nasl</CODE></DD>
-
-   <DT>Report CVE ID(s) for all Oracle-related plugins.</DT>
-   <DD><CODE>describe-nessus-plugin -f cve_id /usr/local/lib/nessus/plugins/oracle*.nasl</CODE></DD>
-
-   <DT>Same as above but avoid line-wrap.</DT>
-   <DD><CODE>describe-nessus-plugin -f cve_id -w 999 /usr/local/lib/nessus/plugins/oracle*.nasl</CODE></DD>
-
-   <DT>Report all information except the description for all Apache-related plugins.</DT>
-   <DD><CODE>describe-nessus-plugin -f _all_ -f '!description'
-      /usr/local/lib/nessus/plugins/apache*.nasl</CODE></DD>
-</DL>
-</BLOCKQUOTE>
-
-<P>The output produced by <B>describe-nessus-plugin</B> is fairly simple
-to manipulate, if you care to work with it elsewhere.  For example, <A
-HREF="/code/describe-nessus-plugin/desc2csv">desc2csv</A> is a Perl
-script to filter the output into CSV format, for import into a 
-spreadsheet or possibly a database.</P>
+* Commandline arguments take precedence over variables defined in the script. For example, you can describe all functions by using the commandline argument `-f _all_` regardless of how `@funcs` is defined in the script.
+* Multiple functions can be specified either by a comma-delimited string or by multiple argument pairs.  For example, `-f "cve_id,bugtraq"` is equivalent to `-f cve_id -f bugtraq`.
+* This script reportedly runs fine under Windows, although it does not handle wildcard expansion out of the box. You can work around this by creating `Wild.pm` and adding`-MWild` to the commandline as described in the [perlwin32](http://perldoc.perl.org/perlwin32.html) documentation.
 
 
-<H3>Known Bugs and Caveats</H3>
+Examples:
 
-<P>Currently, I am not aware of any bugs in this script.</P>
+| Goal | Invocation |
+| -----| ---------- |
+| Describe assorted NASL plugins related to MS SQL. | `describe-nessus-plugin /usr/local/lib/nessus/plugins/mssql*.nasl` |
+| Show how the script parses the specified NASL plugin. | `describe-nessus-plugin -d wip.nasl` |
+| Report CVE ID(s) for all Oracle-related plugins. | `describe-nessus-plugin -f cve_id /usr/local/lib/nessus/plugins/oracle*.nasl` |
+| Same as above but avoid line-wrap. | `describe-nessus-plugin -f cve_id -w 999 /usr/local/lib/nessus/plugins/oracle*.nasl` |
+| Report all information except the description for all Apache-related plugins. | `describe-nessus-plugin -f _all_ -f '!description' /usr/local/lib/nessus/plugins/apache*.nasl` |
 
-<P>Understand that this script is not a NASL parser - on one hand, it
-may not handle some constructs the language allows; on the other, it may
-accept some the language prohibits.  Still, it seems to properly process
-most of the scripts currently available in the plugin feed.</P>
-
-<P>Long lines in the output are wrapped and indented to agree with the
-report format, which sometimes messes up formatting that plugin authors
-have done.</P>
-
-<P>Some older plugins list some cross-references in comments due to
-limitations on the number of such references that were supported in
-earlier versions.  They are not reported by this script since they can
-not be reliably identified.</P>
-
-<P><B>describe-nessus-plugin</B> may report that a plugin does not have
-a description part.  This occurs when a plugin has been effectively
-disabled in a feed; eg, <CODE>sendmail_wiz.nasl</CODE>.
-
-<P><B>describe-nessus-plugin</B> can not handle the description in
-<CODE>gentoo_GLSA-200411-32.nasl</CODE> and several other local checks
-because <CODE>Text::Balanced</CODE> fails to parse the code snippet
-included in the description.</P>
-
-<P>If you encounter a problem with this script, I encourage you to rerun
-it in debug mode (eg, add <CODE>-d</CODE> to your commandline) and
-examine the resulting output before contacting me.  Often, this will
-enable you to resolve the problem by yourself.</P>
+The output produced by *describe-nessus-plugin* is fairly simple to manipulate, if you care to work with it elsewhere.  For example, [desc2csv](desc2csv) is a Perl script to filter the output into CSV format, for import into a  spreadsheet or possibly a database.
 
 
-<H3>Copyright and License</H3>
+## Known Bugs and Caveats
 
-<P>Copyright (c) 2003-2010, George A. Theall.<BR>
-All rights reserved.</P>
+Currently, I am not aware of any bugs in this script.
 
-<P>This script is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself.</P>
+Understand that this script is not a NASL parser - on one hand, it may not handle some constructs the language allows; on the other, it may accept some the language prohibits.  Still, it seems to properly process most of the scripts currently available in the plugin feed.
 
+Long lines in the output are wrapped and indented to agree with the report format, which sometimes messes up formatting that plugin authors have done.
 
-<H3>History</H3>
+Some older plugins list some cross-references in comments due to limitations on the number of such references that were supported in earlier versions.  They are not reported by this script since they can not be reliably identified.
 
-<CENTER>
-<TABLE CELLPADDING="5" CELLSPACING="0" WIDTH="95%" BORDER="1">
-   <TR>
-      <TH ALIGN="left">Date </TH>
-      <TH ALIGN="left">Version </TH>
-      <TH ALIGN="left">Verification </TH>
-      <TH ALIGN="left">Notes<BR></TH>
-   </TR>
-   <TR>
-      <TH ALIGN="left" VALIGN="top">11-Oct2010 </TH>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.26">2.26</A> </TD>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.26.md5">MD5</A> / 
-         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.26.asc">GPG</A> </TD>
-      <TD ALIGN="left" VALIGN="top">
-      <UL>
-        <LI>Added support for new <CODE>script_set_cvss_base_vector()</CODE> function.</LI>
-      </UL></TD>
-   </TR>
-   <TR>
-      <TH ALIGN="left" VALIGN="top">27-Jun-2010 </TH>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.25">2.25</A> </TD>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.25.md5">MD5</A> / 
-         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.25.asc">GPG</A> </TD>
-      <TD ALIGN="left" VALIGN="top">
-      <UL>
-         <LI>Added support for new <CODE>script_osvdb_id</CODE> function.</LI>
-         <LI>Fixed buglet that could have resulted in a missing label.</LI>
-         <LI>Fixed <CODE>Insecure dependency</CODE> error introduced with Perl 5.10.</LI>
-      </UL></TD>
-   </TR>
-   <TR>
-      <TH ALIGN="left" VALIGN="top">27-Jun-2009 </TH>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.24">2.24</A> </TD>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.24.md5">MD5</A> / 
-         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.24.asc">GPG</A> </TD>
-      <TD ALIGN="left" VALIGN="top">
-      <UL>
-         <LI>Added support for <CODE>ACT_INIT</CODE> and <CODE>ACT_END2</CODE>.</LI>
-         <LI>Relabelled <CODE>ACT_END</CODE>.</LI>
-      </UL></TD>
-   </TR>
-   <TR>
-      <TH ALIGN="left" VALIGN="top">16-May-2009 </TH>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.23">2.23</A> </TD>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.23.md5">MD5</A> / 
-         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.23.asc">GPG</A> </TD>
-      <TD ALIGN="left" VALIGN="top">
-      <UL>
-         <LI>Added support for Nessus's new compat.inc include file.</LI>
-         <LI>Removed support for specifying the language on the commandline.</LI>
-      </UL></TD>
-   </TR>
-   <TR>
-      <TH ALIGN="left" VALIGN="top">27-Sep-2005 </TH>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.22">2.22</A> </TD>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.22.md5">MD5</A> / 
-         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.22.asc">GPG</A> </TD>
-      <TD ALIGN="left" VALIGN="top">
-      <UL>
-         <LI>Fixed warning messages about use of uninitialized values
-            when a plugin doesn't have a risk factor.</LI>
-      </UL></TD>
-   </TR>
-   <TR>
-      <TH ALIGN="left" VALIGN="top">24-Sep-2005 </TH>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.21">2.21</A> </TD>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.21.md5">MD5</A> / 
-         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.21.asc">GPG</A> </TD>
-      <TD ALIGN="left" VALIGN="top">
-      <UL>
-         <LI>Adjusted regular expression patterns to handle new script
-            description layout, especially the risk factor.</LI>
-      </UL></TD>
-   </TR>
-   <TR>
-      <TH ALIGN="left" VALIGN="top">07-Aug-2005 </TH>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.20">2.20</A> </TD>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.20.md5">MD5</A> / 
-         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.20.asc">GPG</A> </TD>
-      <TD ALIGN="left" VALIGN="top">
-      <UL>
-         <LI>Added <CODE>-w</CODE> option for controlling line-wrapping.</LI>
-      </UL></TD>
-   </TR>
-   <TR>
-      <TH ALIGN="left" VALIGN="top">17-Mar-2004 </TH>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.10">2.10</A> </TD>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.10.md5">MD5</A> / 
-         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.10.asc">GPG</A> </TD>
-      <TD ALIGN="left" VALIGN="top">
-      <UL>
-         <LI>Added subroutine prototypes.</LI>
-         <LI>Added limited support for the NASL function 
-            <CODE>raw_string()</CODE>.</LI>
-         <LI>Modified usage message and removed separate error message if no
-            plugins were specified.</LI>
-         <LI>Modified handling of quoted values and references in 
-            <CODE>eval_expr()</CODE>.</LI>
-         <LI>Removed any trailing spaces from Risk Factor.</LI>
-      </UL></TD>
-   </TR>
-   <TR>
-      <TH ALIGN="left" VALIGN="top">09-Dec-2003 </TH>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.01">2.01</A> </TD>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.01.md5">MD5</A> / 
-         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.01.asc">GPG</A> </TD>
-      <TD ALIGN="left" VALIGN="top">
-      <UL>
-         <LI>Added code to print an error message if no plugins are specified
-            on the commandline.</LI>
-         <LI>Changed behaviour of <CODE>Text::Wrap</CODE> so it does not 
-            use tabs in output.</LI>
-      </UL></TD>
-   </TR>
-   <TR>
-      <TH ALIGN="left" VALIGN="top">03-Dec-2003 </TH>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.00">2.00</A> </TD>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.00.md5">MD5</A> / 
-         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-2.00.asc">GPG</A> </TD>
-      <TD ALIGN="left" VALIGN="top">
-      <UL>
-         <LI>Rewrote major portions of the code.</LI>
-         <LI>Fixed a bug that would cause all but first X-Reference function
-            in a plugin to be ignored.</LI>
-         <LI>Added support for category ACT_FLOOD and for all descriptive
-            functions in NASL currently.</LI>
-         <LI>Added options for selecting prefered language as well as the
-            functions to output.</LI>
-         <LI>Added support for wrapping long lines in output.</LI>
-      </UL></TD>
-   </TR>
-   <TR>
-      <TH ALIGN="left" VALIGN="top">12-Oct-2003 </TH>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-1.00">1.00</A> </TD>
-      <TD ALIGN="left" VALIGN="top"><A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-1.00.md5">MD5</A> / 
-         <A HREF="/code/describe-nessus-plugin/describe-nessus-plugin-1.00.asc">GPG</A> </TD>
-      <TD ALIGN="left" VALIGN="top">
-      <UL>
-         <LI>Initial version.</LI>
-      </UL></TD>
-   </TR>
-</TABLE>
-</CENTER>
+*describe-nessus-plugin* may report that a plugin does not have a description part.  This occurs when a plugin has been effectively disabled in a feed; eg, `sendmail_wiz.nasl`. 
+
+*describe-nessus-plugin* can not handle the description in `gentoo_GLSA-200411-32.nasl` and several other local checks because `Text::Balanced` fails to parse the code snippet included in the description.
+
+If you encounter a problem with this script, I encourage you to rerun it in debug mode (eg, add `-d` to your commandline) and examine the resulting output before contacting me.  Often, this will enable you to resolve the problem by yourself.
 
 
-<HR>
-<H4 ALIGN="center">
-   <A HREF="/">TifaWARE</A> |
-   <A HREF="../">Perl Programs</A> |
-   describe-nessus-plugin
-</H4>
+## Copyright and License
 
-<!-- $Id$ -->
-                                                                                
-<!--#include virtual="/footer.html" -->
-<!--#if expr="$weblint" -->
-</BODY>
-<!--#endif -->
-</HTML>
+Copyright (c) 2003-2016, George A. Theall.
+All rights reserved.
+
+This script is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
