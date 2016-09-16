@@ -5,12 +5,10 @@
 #
 # Written by George A. Theall, theall@tifaware.com
 #
-# Copyright (c) 2003-2010, George A. Theall. All rights reserved.
+# Copyright (c) 2003-2016, George A. Theall. All rights reserved.
 #
 # This module is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself.
-#
-# $Id$
 # ---------------------------------------------------------------------
 
 
@@ -110,9 +108,8 @@ will cause them to be reported as missing.
 
 =head1 SEE ALSO
 
-L<http://www.nessus.org/plugins/index.php?view=all>,
-L<http://www.nessus.org/doc/nasl2_reference.pdf>,
-L<http://www.tifaware.com/perl/describe-nessus-plugin/>. 
+L<https://www.tenable.com/plugins/index.php?view=all>,
+L<https://github.com/gatheall/describe-nessus-plugin>. 
 
 =cut
 
